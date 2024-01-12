@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinalRush</title>
+    <!-- Import style -->
+    <link rel="stylesheet" href="static/element-plus.css" />
+    <!-- Import Vue 3 -->
+    <script src="static/vue.global.js"></script>
+    <!-- Import component library -->
+    <script src="static/element-plus.full.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <el-tabs type="border-card" :tab-position="qStyle.tabPosition" v-model="qStyle.tabSlected" v-loading="loading">
+            <el-tab-pane label="数据" name="data">
+                <div id="data-button-group">
+                    <el-button type="success" @click="defaultImportDialogVisible=true">导入默认题库</el-button>
+                    <el-button type="primary" @click="shuffle">打乱题目</el-button>
+                    <el-button type="primary" @click="shuffleSelect">打乱选项</el-button>
+                    <el-button type="primary" @click="clearNum">清除题号</el-button>
+                    <el-button type="primary" @click="rmDuplicate">去重</el-button>
+                    <el-button type="info" @click="showJson">JSON</el-button>
+                    <el-button type="danger" @click="clearQuestion">清空</el-button>
+                </div>
+
+                <el-table :data="question.questions" stripe>
+                    <el-table-column type="index" label="序号" width="60"></el-table-column>
+                    <el-table-column prop="title" label="题目"></el-table-column>
+                    <el-table-column prop="options" label="选项">
+                        <template #default="scope">
+                            <div class="data-option-group">
+                                <el-tag v-for="(option, index) in scope.row.options" :key="index">
+                                    {{ option }}
+                                </el-tag>
+                            </div>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="answer" label="答案">
+                        <template #default="scope">
+                            <div class="data-option-group" v-if="scope.row.type !== 'multiple'">
+                                <el-tag type="success">
+                                    {{ scope.row.options[scope.row.answer] }}
+                                </el-tag>
+                            </div>
+                            <div class="data-option-group" v-if="scope.row.type === 'multiple'">
+                                <el-tag type="success" v-for="(option, index) in scope.row.answer" :key="index">
+                                    {{ scope.row.options[option] }}
+                                </el-tag>
+                            </div>
+                        </template>
+                    </el-table-column>
+                </el-table>
+
+                <el-dialog v-model="defaultImportDialogVisible" title="导入默认题库">
+                    <div class="dialog-main">
+                        <el-select v-model="defaultImportFileName" placeholder="选择一个题库">
+                            <el-option label="习概" value="xg.json"></el-option>
+                            <!-- <el-option label="软件工程" value="rjgc.json"></el-option>
+                            <el-option label="服务端" value="java.json"></el-option>
+                            <el-option label="大数据" value="dsj.json"></el-option> -->
+                        </el-select>
+                        <el-input v-model="customImportFileName" @keyup.enter.native="importDefault"
+                            placeholder="或输入自定义题库文件"></el-input>
+                    </div>
+                    <template #footer>
+                        <span class="dialog-footer">
+                            <el-button @click="defaultImportDialogVisible = false">取消</el-button>
+                            <el-button type="primary" @click="importDefault">导入</el-button>
+                        </span>
+                    </template>
+                </el-dialog>
+            </el-tab-pane>
+
+            <el-tab-pane label="做题" name="do">
+
+                <div v-if="question.qCount > 0">
+                    <div id="do-progress">
+                        <el-text>{{ state.qIndex+1 }} / {{ question.qCount }}</el-text>
+                        <el-progress :percentage="((state.qIndex + 1) / question.qCount) * 100" :show-text="false"
+                            style="flex-grow: 1" id="el-progress" />
+                    </div>
+
+                    <div id="do-status">
+                        <el-tag type="success">正确 {{ state.correctCount }}</el-tag>
+                        <el-tag type="danger">错误 {{ state.wrongCount }}</el-tag>
+                    </div>
+
+                    <div id="do-question">
+                        <div id="question-title">
+                            <el-tag>{{ state.qIndex+1 }}</el-tag>
+                            {{ question.questions[state.qIndex].title }}
+                        </div>
+                        <div id="question-options">
+                            <el-radio-group v-model="answerSheet[state.qIndex]" class="option-group"
+                                v-if="question.questions[state.qIndex].type !== 'multiple'">
+                                <el-radio v-for="(option, index) in question.questions[state.qIndex].options"
+                                    :label="index" border size="large" style="width: 100%;" @change="selectAnswer">
+                                    <div id="option-text">{{ option }}</div>
+                                </el-radio>
+                            </el-radio-group>
+
+                            <el-checkbox-group v-model="answerSheet[state.qIndex]" class="option-group"
+                                v-if="question.questions[state.qIndex].type ==='multiple'">
+                                <el-checkbox v-for="(option, index) in question.questions[state.qIndex].options"
+                                    :label="index" border size="large" style="width: 100%;" @change="selectAnswer">
+                                    <div id="option-text">{{ option }}</div>
+                                </el-checkbox>
+                            </el-checkbox-group>
+                        </div>
+                    </div>
+
+                    <div class="button-group" id="do-control">
+                        <div>
+                            <el-button type="primary" @click="prev" :size="qStyle.doControlButtonSize"
+                                :disabled="state.qIndex === 0">上一题</el-button>
+                            <el-button type="primary" @click="next" :size="qStyle.doControlButtonSize">下一题</el-button>
+                        </div>
+                        <div>
+                            <el-button type="warning" @click="restart"
+                                :size="qStyle.doControlButtonSize">重新开始</el-button>
+                            <el-button type="primary" @click="showAnswer"
+                                :size="qStyle.doControlButtonSize">查看答案</el-button>
+                        </div>
+                    </div>
+
+                    <div id="do-check" v-if="showCheck">
+                        <el-alert title="回答错误" type="error" v-if="errIndex !== -1">
+                            <el-text>{{ question.questions[errIndex].title }}</el-text>
+                            <div id="current-answer-tag" v-if="question.questions[errIndex].type !== 'multiple'">
+                                <el-tag v-for="(option, index) in question.questions[errIndex].options"
+                                    :type="question.questions[errIndex].answer === index ? 'success' : 'danger'">
+                                    {{ option }}
+                                </el-tag>
+                            </div>
+                            <div id="current-answer-tag" v-if="question.questions[errIndex].type === 'multiple'">
+                                <el-tag v-for="(option, index) in question.questions[errIndex].options"
+                                    :type="question.questions[errIndex].answer.includes(index) ? 'success' : 'danger'">
+                                    {{ option }}
+                                </el-tag>
+                            </div>
+                            <div v-if="question.questions[errIndex].explain">
+                                <el-text>解析：</el-text>
+                                <el-text>{{ question.questions[errIndex].explain }}</el-text>
+                            </div>
+                        </el-alert>
+
+                        <el-alert title="查看答案" type="warning" v-if="errIndex === -1">
+                            <el-text>{{ question.questions[state.qIndex].title }}</el-text>
+                            <div id="current-answer-tag" v-if="question.questions[state.qIndex].type !== 'multiple'">
+                                <el-tag v-for="(option, index) in question.questions[state.qIndex].options"
+                                    :type="question.questions[state.qIndex].answer === index ? 'success' : 'danger'">
+                                    {{ option }}
+                                </el-tag>
+                            </div>
+                            <div id="current-answer-tag" v-if="question.questions[state.qIndex].type === 'multiple'">
+                                <el-tag v-for="(option, index) in question.questions[state.qIndex].options"
+                                    :type="question.questions[state.qIndex].answer.includes(index) ? 'success' : 'danger'">
+                                    {{ option }}
+                                </el-tag>
+                            </div>
+                            <div v-if="question.questions[state.qIndex].explain">
+                                <el-text>解析：</el-text>
+                                <el-text>{{ question.questions[state.qIndex].explain }}</el-text>
+                            </div>
+                        </el-alert>
+                    </div>
+                </div>
+
+                <div v-if="question.qCount === 0">
+                    <el-alert title="题库为空" type="warning">
+                        <el-text>请先导入题库</el-text>
+                    </el-alert>
+                </div>
+
+            </el-tab-pane>
+
+            <el-tab-pane label="导入" name="import">
+                <div style="display: flex;flex-direction: column;gap: 10px;">
+                    <el-input v-model="customFilter" :autosize="{ minRows: 1, maxRows: 6 }" type="textarea"
+                        placeholder="自定义行过滤正则表达式 (每行一条)"></el-input>
+                    <el-input v-model="importQuestionInput" :autosize="{ minRows: 6, maxRows: 6 }" type="textarea"
+                        placeholder="在此粘贴题库"></el-input>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin: 15px 0;">
+                    <div>
+                        <el-button type="primary" @click="importInput()"
+                            :disabled="importQuestionInput === ''">覆盖导入</el-button>
+                        <el-button type="primary" @click="importInput('append')"
+                            :disabled="importQuestionInput === ''">追加导入</el-button>
+                    </div>
+                    <div>
+                        <el-switch v-model="autoGoDo" active-text="自动跳转到做题"></el-switch>
+                    </div>
+                </div>
+                <div v-if="showImportResult">
+                    <el-alert title="导入成功" type="success">
+                        <el-text>共导入 {{ question.qCount }} 题</el-text>
+                    </el-alert>
+                </div>
+            </el-tab-pane>
+
+            <el-tab-pane label="设置" name="config">
+                <div style="margin-bottom: 20px;">
+                    <el-checkbox v-model="config.autoNext">单选自动下一题</el-checkbox>
+                    <el-checkbox v-model="config.immediateCheck">做错立即显示答案</el-checkbox>
+                    <div>
+                        <el-text>题目字体大小：</el-text>
+                    </div>
+                    <div>
+                        <el-input-number v-model="config.titleFontSize" :min="12" :max="24" :step="1" label="题目字体大小"
+                            style="width: 150px" />
+                    </div>
+                </div>
+
+                <div>
+                    <el-button type="primary" @click="saveConfig">保存设置</el-button>
+                    <el-button type="warning" @click="resetConfig">重置</el-button>
+                </div>
+            </el-tab-pane>
+        </el-tabs>
+    </div>
+
+    <script>
+        const answerSheet = [];
+        const question = {
+            qCount: 0,
+            questions: [],
+        };
+
+        const state = {
+            qIndex: 0,
+            correctCount: 0,
+            wrongCount: 0,
+        };
+
+        const config = {
+            autoNext: true,
+            immediateCheck: true,
+            titleFontSize: 16,
+        };
+
+        const qNumRegex = /^\d+[\.．)）、]/;
+
+        const App = {
+            data() {
+                return {
+                    answerSheet: answerSheet,
+                    question: question,
+                    state: state,
+                    config: config,
+                    qStyle: {
+                        tabSlected: 'do',
+                        tabPosition: 'left',
+                        doControlButtonSize: 'default',
+                    },
+                    loading: false,
+                    errIndex: -1,
+                    showCheck: false,
+                    showImportResult: false,
+                    defaultImportDialogVisible: false,
+                    defaultImportFileName: '',
+                    customImportFileName: '',
+                    importQuestionInput: '',
+                    autoGoDo: true,
+                    customFilter: '',
+                }
+            },
+
+            watch: {
+                config: {
+                    handler: function (val, oldVal) {
+                        const qTitle = document.getElementById('question-title');
+                        if (qTitle) {
+                            qTitle.style.fontSize = val.titleFontSize + 'px';
+                        }
+                    },
+                    deep: true
+                }
+            },
+
+            methods: {
+                handleResize() {
+                    this.qStyle.tabPosition = window.innerWidth < 768 ? 'top' : 'left';
+                    this.qStyle.doControlButtonSize = window.innerWidth < 768 ? 'large' : 'default';
+                },
+                showJson() {
+                    ElementPlus.ElMessageBox({
+                        title: 'JSON',
+                        message: JSON.stringify(this.question.questions),
+                        showCancelButton: false,
+                        confirmButtonText: '关闭',
+                    });
+                },
+                shuffle() {
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.question.questions.sort(() => Math.random() - 0.5);
+                        this.saveQuestion();
+                        this.loading = false;
+                    }, 1);
+                },
+                shuffleSelect() {
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.question.questions.forEach((question, index) => {
+                            if (question.type === 'multiple') {
+                                // 多选打乱选项
+                                const answer = [];
+                                question.answer.forEach((answerIndex) => {
+                                    answer.push(question.options[answerIndex]);
+                                });
+                                question.options.sort(() => Math.random() - 0.5);
+                                question.answer = [];
+                                answer.forEach((answerText) => {
+                                    question.answer.push(question.options.indexOf(answerText));
+                                });
+                            } else {
+                                // 单选打乱选项
+                                const answer = question.options[question.answer];
+                                question.options.sort(() => Math.random() - 0.5);
+                                question.answer = question.options.indexOf(answer);
+                            }
+                        });
+                        this.saveQuestion();
+                        this.loading = false;
+                    }, 1);
+                },
+                clearNum() {
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.question.questions.forEach((question, index) => {
+                            question.title = question.title.replace(qNumRegex, '');
+                        });
+                        this.saveQuestion();
+                        this.loading = false;
+                    }, 1);
+                },
+                rmDuplicate() {
+                    this.loading = true;
+                    setTimeout(() => {
+                        const before = this.question.questions.length;
+
+                        const newQuestions = [];
+                        const map = new Map();
+                        for (const item of this.question.questions) {
+                            const title = item.title.replace(/\s/g, '');
+                            if (!map.has(title)) {
+                                map.set(title, true);
+                                newQuestions.push(item);
+                            }
+                        }
+                        this.question.questions = newQuestions;
+                        this.question.qCount = this.question.questions.length;
+                        this.saveQuestion();
+
+                        const after = this.question.questions.length;
+                        this.loading = false;
+                        ElementPlus.ElNotification({
+                            title: '去重完成',
+                            message: `共去除 ${before - after} 题`,
+                            type: 'success',
+                            duration: 2000,
+                        });
+                    }, 1);
+                },
+                clearQuestion() {
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.question.questions = [];
+                        this.question.qCount = 0;
+                        this.saveQuestion();
+                        this.restart();
+                        this.loading = false;
+                    }, 1);
+                },
+                importInput(flag) {
+                    // 文本框导入
+                    const questions = [];
+                    const lines = this.importQuestionInput.split('\n').filter(line => line.trim() !== '');
+
+                    const optionRegex = /(?:^[A-Z]|\s[B-Z])[\.．:：\s]/i;
+                    const bracketLetter = /[\(（]\s*?[A-Z]{1,4}\s*?[\)）]/i;
+                    const bracketBoolean = /[\(（]\s*?(正确|对|错|[⍻✓✓☑✗✘x×X✕☓✖]).*?[\)）]/u;
+                    const booleanRegex = /正确|对|错|[⍻✓✓☑✗✘x×X✕☓✖]/u;
+                    const trueRegex = /正确|对|[⍻✓✓☑]/u;
+                    const findInlineAnswer = (title) => {
+                        const match1 = title.toUpperCase().match(bracketLetter);
+                        if (match1) {
+                            // 判断答案个数
+                            const match = match1[0].match(/[A-Z]/g);
+                            if (match.length === 1) {
+                                // 单选
+                                const answer = match[0].charCodeAt(0) - 65;
+                                return {
+                                    match: true,
+                                    type: 'letter',
+                                    answer: answer,
+                                };
+                            } else {
+                                // 多选
+                                const answer = match.map(letter => letter.charCodeAt(0) - 65);
+                                return {
+                                    match: true,
+                                    type: 'letter',
+                                    answer: answer,
+                                    multiple: true,
+                                };
+                            }
+                        }
+                        const match2 = title.match(bracketBoolean);
+                        if (match2) {
+                            const answer = match2[0].search(trueRegex) !== -1 ? 0 : 1;
+                            return {
+                                match: true,
+                                type: 'boolean',
+                                answer: answer,
+                            };
+                        }
+                        return {
+                            match: false,
+                        };
+                    };
+                    const removeAnswerFromTitle = (title) => {
+                        return title.replace(bracketLetter, '( )').replace(bracketBoolean, '( )');
+                    };
+                    const setAnswer = (line, currentQuestion, currentOptions) => {
+                        if (line.search(booleanRegex) !== -1) {
+                            currentQuestion.answer = line.search(trueRegex) !== -1 ? 0 : 1;
+                            currentQuestion.options = ['正确', '错误'];
+                        } else {
+                            // 判断答案个数
+                            const match = line.toUpperCase().match(/[A-Z]/g);
+                            if (match.length === 1) {
+                                // 单选
+                                currentQuestion.answer = match[0].charCodeAt(0) - 65;
+                            } else {
+                                // 多选
+                                currentQuestion.answer = match.map(letter => letter.charCodeAt(0) - 65);
+                                currentQuestion.type = 'multiple';
+                            }
+                            currentQuestion.options = currentOptions;
+                        }
+                    }
+
+                    let currentQuestion = {};
+                    let currentOptions = [];
+                    for (let line of lines) {
+                        line = line.trim();
+
+                        if (this.customFilter !== '') {
+                            // 自定义过滤
+                            const regExps = this.customFilter.split('\n').filter(line => line.trim() !== '');
+                            let flag = false;
+                            for (const regExp of regExps) {
+                                if (line.search(new RegExp(regExp)) !== -1) {
+                                    flag = true;
+                                    break;
+                                }
+                            }
+                            if (flag) continue;
+                        }
+
+                        if (line.search(/^得分[:：][\d\.\s]+?分?$/u) !== -1) {
+                            // 过滤得分行
+                            continue;
+                        }
+                        if (line.search(/(^[单多]项选择题$)|(^[单多]选题$)|(^判断题$)|(^全部题目$)/u) !== -1) {
+                            // 过滤题型行
+                            continue;
+                        }
+
+                        if (line.search(/(^(答案)?解析[:：])/u) !== -1) {
+                            // 答案解析行
+                            questions[questions.length - 1].explain = line.replace(/(^答案解析[:：])/u, '');
+                            continue;
+                        }
+
+                        if (line.search(/(^答案)|(^我的答案)|(^参考答案)/u) !== -1) {
+                            // 答案行
+                            if (line.search(/(^参考答案)/u) !== -1 && !currentQuestion.title) {
+                                // 参考答案行，且上一题已结束，说明可能是上一题的参考答案
+                                currentQuestion = questions.pop();
+                                currentOptions = currentQuestion.options;
+                            }
+                            setAnswer(line, currentQuestion, currentOptions);
+                            questions.push(currentQuestion);
+                            currentQuestion = {};
+                            currentOptions = [];
+                        } else if (line.search(/(^正确$)|(^错误$)/i) !== -1) {
+                            // 选项行
+                            currentQuestion.options = ['正确', '错误'];
+                        } else if (line.charAt(0).search(/[A-Z]/i) !== -1) {
+                            // 选项行
+                            line.split(optionRegex).filter(option => option.trim() !== '').forEach(option => {
+                                currentOptions.push(option.trim());
+                            });
+                        } else if (line.search(qNumRegex) !== -1) {
+                            // 本行开头疑似题号
+                            if (currentQuestion.title) {
+                                // 上一题未结束，说明可能没有单独的答案行，尝试在题目中找答案
+                                const find = findInlineAnswer(currentQuestion.title);
+                                if (find.match) {
+                                    currentQuestion.title = removeAnswerFromTitle(currentQuestion.title);
+                                    currentQuestion.answer = find.answer;
+                                    currentQuestion.options = find.type === 'letter' ? currentOptions : ['正确', '错误'];
+                                    if (find.multiple) {
+                                        currentQuestion.type = 'multiple';
+                                    }
+                                    questions.push(currentQuestion);
+                                    currentQuestion = {};
+                                    currentOptions = [];
+
+                                    currentQuestion.title = line;
+                                    continue;
+                                }
+
+                                // 题目中没有找到答案，本行可能是题目的一部分
+                                currentQuestion.title += line;
+                            } else {
+                                currentQuestion.title = line;
+                            }
+                        }
+                        else {
+                            if (currentQuestion.title) {
+                                currentQuestion.title += line;
+                            } else if (questions[questions.length - 1].explain) {
+                                questions[questions.length - 1].explain += line;
+                            } else {
+                                currentQuestion.title = line;
+                            }
+                        }
+                    }
+
+                    if (currentQuestion.title) {
+                        // 最后一题
+                        const find = findInlineAnswer(currentQuestion.title);
+                        if (find.match) {
+                            currentQuestion.title = removeAnswerFromTitle(currentQuestion.title);
+                            currentQuestion.answer = find.answer;
+                            currentQuestion.options = find.type === 'letter' ? currentOptions : ['正确', '错误'];
+                            if (find.multiple) {
+                                currentQuestion.type = 'multiple';
+                            }
+                            questions.push(currentQuestion);
+                        }
+                    }
+
+                    // console.log(questions);
+                    // console.log(JSON.stringify(questions));
+
+                    if (flag === 'append') {
+                        this.appendQuestion(questions);
+                    }
+                    else {
+                        this.importQuestion(questions);
+                    }
+                    this.importQuestionInput = '';
+                    // this.showImportResult = true;
+                },
+                importDefault() {
+                    // 获取服务器端文件导入
+                    this.defaultImportDialogVisible = false;
+                    if (this.customImportFileName) {
+                        this.loading = true;
+                        fetch("data/" + this.customImportFileName)
+                            .then(response => {
+                                if (response.ok) return response.json();
+                                else return Promise.reject('导入失败');
+                            })
+                            .then(data => {
+                                this.importQuestion(data);
+                                this.loading = false;
+                            })
+                            .catch(err => {
+                                this.loading = false;
+                                ElementPlus.ElNotification({
+                                    title: '导入失败',
+                                    message: '请检查文件是否存在',
+                                    type: 'error',
+                                    duration: 2000,
+                                });
+                            });
+                    }
+                    else if (this.defaultImportFileName) {
+                        this.loading = true;
+                        fetch("data/" + this.defaultImportFileName)
+                            .then(response => {
+                                if (response.ok) return response.json();
+                                else return Promise.reject('导入失败');
+                            })
+                            .then(data => {
+                                this.importQuestion(data);
+                                this.loading = false;
+                            })
+                            .catch(err => {
+                                this.loading = false;
+                                ElementPlus.ElNotification({
+                                    title: '导入失败',
+                                    message: '请检查文件是否存在',
+                                    type: 'error',
+                                    duration: 2000,
+                                });
+                            });
+                    }
+                    this.customImportFileName = '';
+                    this.defaultImportFileName = '';
+                },
+                importQuestion(questions) {
+                    this.question.questions = questions;
+                    this.question.qCount = questions.length;
+                    this.saveQuestion();
+
+                    this.restart();
+                    if (this.autoGoDo) {
+                        this.qStyle.tabSlected = 'do';
+                    }
+
+                    setTimeout(() => {
+                        ElementPlus.ElNotification({
+                            title: '导入成功',
+                            message: `共导入 ${questions.length} 题`,
+                            type: 'success',
+                            duration: 2000,
+                        });
+                    }, 500);
+                },
+                appendQuestion(questions) {
+                    this.question.questions = this.question.questions.concat(questions);
+                    this.question.qCount = this.question.questions.length;
+                    this.saveQuestion();
+
+                    this.restart();
+                    if (this.autoGoDo) {
+                        this.qStyle.tabSlected = 'do';
+                    }
+
+                    setTimeout(() => {
+                        ElementPlus.ElNotification({
+                            title: '导入成功',
+                            message: `共导入 ${questions.length} 题，题库共 ${this.question.qCount} 题`,
+                            type: 'success',
+                            duration: 2000,
+                        });
+                    }, 500);
+                },
+                selectAnswer() {
+                    setTimeout(() => {
+                        // 多选题不自动下一题
+                        if (this.question.questions[this.state.qIndex].type === 'multiple') {
+                            return;
+                        }
+
+                        if (this.config.autoNext) {
+                            this.next();
+                        }
+                    }, 300);
+                },
+                checkAnswer(index) {
+                    if (this.question.questions[index].type === 'multiple') {
+                        // 检查多选题
+                        const answer = this.question.questions[index].answer.sort();
+                        const userAnswer = this.answerSheet[index];
+                        if (userAnswer) {
+                            userAnswer.sort();
+                        }
+                        if (!userAnswer || answer.length !== userAnswer.length) {
+                            this.errIndex = index;
+                            this.state.wrongCount++;
+                            if (this.config.immediateCheck) {
+                                this.showCheck = true;
+                            }
+                        } else {
+                            let correct = true;
+                            for (let i = 0; i < answer.length; i++) {
+                                if (answer[i] !== userAnswer[i]) {
+                                    correct = false;
+                                    break;
+                                }
+                            }
+                            if (correct) {
+                                this.errIndex = -1;
+                                this.state.correctCount++;
+                                this.showCheck = false;
+                            } else {
+                                this.errIndex = index;
+                                this.state.wrongCount++;
+                                if (this.config.immediateCheck) {
+                                    this.showCheck = true;
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        // 检查单选题
+                        if (this.answerSheet[index] !== this.question.questions[index].answer) {
+                            this.errIndex = index;
+                            this.state.wrongCount++;
+                            if (this.config.immediateCheck) {
+                                this.showCheck = true;
+                            }
+                        } else {
+                            this.errIndex = -1;
+                            this.state.correctCount++;
+                            this.showCheck = false;
+                        }
+                    }
+                },
+                showAnswer() {
+                    this.errIndex = -1;
+                    this.showCheck = !this.showCheck;
+                },
+                restart() {
+                    this.state.qIndex = 0;
+                    this.state.correctCount = 0;
+                    this.state.wrongCount = 0;
+                    this.errIndex = -1;
+                    this.showCheck = false;
+                    this.answerSheet = [];
+                    this.saveState();
+                },
+                showResultDialog() {
+                    let correct = 0;
+                    let wrong = [];
+                    for (let i = 0; i < this.question.qCount; i++) {
+                        if (this.question.questions[i].type === 'multiple') {
+                            // 检查多选题
+                            const answer = this.question.questions[i].answer.sort();
+                            const userAnswer = this.answerSheet[i];
+                            if (userAnswer) {
+                                userAnswer.sort();
+                            }
+                            if (!userAnswer || answer.length !== userAnswer.length) {
+                                wrong.push(this.question.questions[i]);
+                            } else {
+                                let flag = true;
+                                for (let i = 0; i < answer.length; i++) {
+                                    if (answer[i] !== userAnswer[i]) {
+                                        correct = false;
+                                        break;
+                                    }
+                                }
+                                if (!flag) {
+                                    wrong.push(this.question.questions[i]);
+                                } else {
+                                    correct++;
+                                }
+                            }
+                            continue;
+                        }
+
+                        if (this.answerSheet[i] !== this.question.questions[i].answer) {
+                            wrong.push(this.question.questions[i]);
+                        } else {
+                            correct++;
+                        }
+                    }
+                    ElementPlus.ElMessageBox({
+                        title: '做题结果',
+                        message: `正确 ${correct} 题，错误 ${wrong.length} 题<br>
+                        是否导入错题重新开始？`,
+                        dangerouslyUseHTMLString: true,
+                        type: 'success',
+                        showCancelButton: true,
+                        confirmButtonText: '导入错题',
+                        cancelButtonText: '取消',
+                    }).then((action) => {
+                        if (action === 'confirm') {
+                            this.question.questions = wrong;
+                            this.question.qCount = wrong.length;
+                            this.restart();
+                            this.qStyle.tabSlected = 'do';
+                        }
+                    });
+                },
+                submit() {
+                    this.loading = true;
+                    setTimeout(() => {
+                        this.showResultDialog();
+                        this.loading = false;
+                    }, 1);
+                },
+                next() {
+                    this.checkAnswer(this.state.qIndex);
+                    if (this.state.qIndex === this.question.qCount - 1) {
+                        this.submit();
+                        return;
+                    }
+                    this.state.qIndex++;
+                    this.saveState();
+                },
+                prev() {
+                    if (this.state.qIndex === 0) {
+                        return;
+                    }
+                    this.showCheck = false;
+                    this.state.qIndex--;
+                    this.saveState();
+                },
+                saveQuestion() {
+                    localStorage.setItem('question', JSON.stringify(this.question));
+                },
+                saveState() {
+                    localStorage.setItem('state', JSON.stringify(this.state));
+                    localStorage.setItem('answerSheet', JSON.stringify(this.answerSheet));
+                },
+                saveConfig() {
+                    localStorage.setItem('config', JSON.stringify(this.config));
+                    ElementPlus.ElNotification({
+                        title: '保存成功',
+                        message: '设置已保存',
+                        type: 'success',
+                        duration: 2000,
+                    });
+                },
+                resetConfig() {
+                    const config = localStorage.getItem('config');
+                    if (config) {
+                        this.config = JSON.parse(config);
+                    }
+                },
+            },
+
+            mounted() {
+                window.addEventListener('resize', this.handleResize);
+                window.addEventListener('load', () => {
+                    this.handleResize();
+                    this.resetConfig();
+                });
+                const question = localStorage.getItem('question');
+                const state = localStorage.getItem('state');
+                const answerSheet = localStorage.getItem('answerSheet');
+                if (question) {
+                    this.question = JSON.parse(question);
+                }
+                if (state) {
+                    this.state = JSON.parse(state);
+                }
+                if (answerSheet) {
+                    this.answerSheet = JSON.parse(answerSheet);
+                }
+            },
+        }
+        const app = Vue.createApp(App);
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+
+<style>
+    #app {
+        margin: 0 1%;
+    }
+
+    .el-dialog {
+        max-width: fit-content;
+    }
+
+    .dialog-main {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 300px;
+    }
+
+    #data-button-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    #data-button-group>* {
+        margin-left: 0;
+    }
+
+    .data-option-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    #do-progress {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px
+    }
+
+    #do-status {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    #do-question {
+        margin: 20px 0;
+    }
+
+    #question-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    #question-options {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 20px 0;
+    }
+
+    #option-text {
+        text-wrap: wrap;
+    }
+
+    .option-group {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .option-group>* {
+        height: fit-content;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        min-height: 40px;
+    }
+
+    .button-group {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    #do-check {
+        margin-top: 15px;
+    }
+
+    #current-answer-tag {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 5px 0;
+        gap: 5px;
+    }
+
+    @media (max-width: 768px) {
+        #do-control {
+            flex-direction: column-reverse;
+            align-items: flex-end;
+        }
+    }
+</style>
+
+</html>
