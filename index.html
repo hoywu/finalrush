@@ -7,6 +7,7 @@
     <title>FinalRush</title>
     <!-- Import style -->
     <link rel="stylesheet" href="static/element-plus.css" />
+    <link rel="stylesheet" href="static/index.css">
     <!-- Import Vue 3 -->
     <script src="static/vue.global.js"></script>
     <!-- Import component library -->
@@ -99,7 +100,7 @@
                                 v-if="question.questions[state.qIndex].type !== 'multiple'">
                                 <el-radio v-for="(option, index) in question.questions[state.qIndex].options"
                                     :label="index" border size="large" style="width: 100%;" @change="selectAnswer">
-                                    <div id="option-text">{{ option }}</div>
+                                    <el-text id="option-text">{{ option }}</el-text>
                                 </el-radio>
                             </el-radio-group>
 
@@ -107,7 +108,7 @@
                                 v-if="question.questions[state.qIndex].type ==='multiple'">
                                 <el-checkbox v-for="(option, index) in question.questions[state.qIndex].options"
                                     :label="index" border size="large" style="width: 100%;" @change="selectAnswer">
-                                    <div id="option-text">{{ option }}</div>
+                                    <el-text id="option-text">{{ option }}</el-text>
                                 </el-checkbox>
                             </el-checkbox-group>
                         </div>
@@ -849,113 +850,5 @@
         app.mount('#app');
     </script>
 </body>
-
-<style>
-    #app {
-        margin: 0 1%;
-    }
-
-    .el-dialog {
-        max-width: fit-content;
-    }
-
-    .dialog-main {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        max-width: 300px;
-    }
-
-    #data-button-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 10px;
-    }
-
-    #data-button-group>* {
-        margin-left: 0;
-    }
-
-    .data-option-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-    }
-
-    #do-progress {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 10px
-    }
-
-    #do-status {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    #do-question {
-        margin: 20px 0;
-    }
-
-    #question-title {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    #question-options {
-        display: flex;
-        flex-wrap: wrap;
-        margin: 20px 0;
-    }
-
-    #option-text {
-        text-wrap: wrap;
-    }
-
-    .option-group {
-        display: flex;
-        flex-direction: column;
-        align-items: start;
-        gap: 10px;
-        width: 100%;
-    }
-
-    .option-group>* {
-        height: fit-content;
-        padding-top: 5px;
-        padding-bottom: 5px;
-        min-height: 40px;
-    }
-
-    .button-group {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-    }
-
-    #do-check {
-        margin-top: 15px;
-    }
-
-    #current-answer-tag {
-        display: flex;
-        flex-wrap: wrap;
-        margin: 5px 0;
-        gap: 5px;
-    }
-
-    @media (max-width: 768px) {
-        #do-control {
-            flex-direction: column-reverse;
-            align-items: flex-end;
-        }
-    }
-</style>
 
 </html>
