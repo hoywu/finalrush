@@ -1,0 +1,320 @@
+<script setup lang="ts">
+import { ElMessageBox, ElScrollbar } from 'element-plus';
+import { useStateStore } from '@/stores/state';
+import { useQuestionStore, type Question } from '@/stores/question';
+import { useAnswerStore } from '@/stores/answerSheet';
+import { useConfigStore } from '@/stores/config';
+import { useWindowSize } from '@vueuse/core';
+
+/*** 全局存储 ***/
+const s = useStateStore();
+const q = useQuestionStore();
+const a = useAnswerStore();
+const c = useConfigStore();
+
+/*** 初始化 ***/
+onMounted(() => {
+  reset();
+  navScrollToMid();
+});
+
+const loading = ref(false);
+/*** 查看答案框 ***/
+const errIndex = ref(-1);
+const showCheck = ref(false);
+const checkIndex = computed(() => {
+  return errIndex.value !== -1 ? errIndex.value : s.state.qIndex;
+});
+
+/*** 导航工具条 ***/
+const navIndex = ref(s.state.qIndex + 1);
+const navOpts = computed(() => {
+  // 生成导航条选项
+  return Array.from({ length: q.qCount }, (_, i) => i + 1);
+});
+const navWidth = computed(() => {
+  // 计算导航条宽度
+  return `${q.qCount * 55}px`;
+});
+const { width } = useWindowSize();
+const navMid = computed(() => {
+  // 导航条中间位置
+  return Math.round(width.value / 2 / 55);
+});
+const navScrollRef = ref<InstanceType<typeof ElScrollbar>>();
+function navScrollToMid() {
+  // 导航条滚动到中间
+  navScrollRef.value?.setScrollLeft((navIndex.value - navMid.value) * 55);
+}
+watch(navIndex, (val) => {
+  s.state.qIndex = val - 1;
+  navScrollToMid();
+});
+watch(s.state, (val) => {
+  navIndex.value = val.qIndex + 1;
+});
+
+/*** 错误率 ***/
+const errRate = computed(() => {
+  const rate = q.questions[s.state.qIndex].errNum / q.questions[s.state.qIndex].doNum;
+  return isNaN(rate)
+    ? '0% (0/0)'
+    : `${(rate * 100).toFixed(0)}% (${q.questions[s.state.qIndex].errNum}/${q.questions[s.state.qIndex].doNum})`;
+});
+const errColor = computed(() => {
+  if (q.questions[s.state.qIndex].doNum <= 3) {
+    return 'info';
+  }
+  const rate = q.questions[s.state.qIndex].errNum / q.questions[s.state.qIndex].doNum;
+  if (rate < 0.2) {
+    return 'success';
+  } else if (rate < 0.5) {
+    return 'warning';
+  } else {
+    return 'danger';
+  }
+});
+
+/*** 按钮事件 ***/
+function selectAnswer() {
+  // 选择答案回调
+  setTimeout(() => {
+    if (c.autoNext && q.isSingle(s.state.qIndex)) {
+      next();
+    }
+  }, 300);
+}
+
+function showAnswer() {
+  // 查看答案按钮
+  errIndex.value = -1;
+  showCheck.value = !showCheck.value;
+}
+
+function prev() {
+  // 上一题按钮
+  if (s.state.qIndex === 0) {
+    return;
+  }
+  showCheck.value = false;
+  s.state.qIndex--;
+}
+
+function next() {
+  // 下一题按钮
+  let correct = q.checkAnswer(s.state.qIndex, a.get(s.state.qIndex));
+  correct ? correctAnswer(s.state.qIndex) : wrongAnswer(s.state.qIndex);
+  if (s.state.qIndex === q.qCount - 1) {
+    submit();
+    return;
+  }
+  s.state.qIndex++;
+}
+
+function submit() {
+  // 做完提交
+  loading.value = true;
+  setTimeout(() => {
+    showResultDialog();
+    loading.value = false;
+  }, 1);
+}
+
+function restart() {
+  // 重新开始
+  s.reset();
+  a.reset();
+  reset();
+}
+
+function reset() {
+  // 清除当前页面的状态
+  errIndex.value = -1;
+  showCheck.value = false;
+}
+
+function showResultDialog() {
+  let correct = 0;
+  let wrong = [] as Array<Question>;
+  q.questions.forEach((v, i) => {
+    q.checkAnswer(i, a.get(i)) ? correct++ : wrong.push(v);
+  });
+
+  ElMessageBox({
+    title: '做题结果',
+    message: `正确 ${correct} 题，错误 ${wrong.length} 题<br>
+                        是否导入错题重新开始？`,
+    dangerouslyUseHTMLString: true,
+    type: 'success',
+    showCancelButton: true,
+    confirmButtonText: '导入错题',
+    cancelButtonText: '取消',
+  })
+    .then((action) => {
+      if (action === 'confirm') {
+        q.questions = wrong;
+        restart();
+      }
+    })
+    .catch(() => {});
+}
+
+function correctAnswer(index: number) {
+  // 用户点击下一题，答案正确
+  s.correct();
+  q.plusCorrect(index);
+  reset();
+}
+
+function wrongAnswer(index: number) {
+  // 用户点击下一题，答案错误
+  s.wrong();
+  q.plusWrong(index);
+  errIndex.value = index;
+  if (c.immediateCheck) {
+    showCheck.value = true;
+  }
+}
+</script>
+
+<template>
+  <div v-if="q.isEmpty()">
+    <el-alert title="题库为空" type="warning">
+      <el-text>请先导入题库</el-text>
+    </el-alert>
+  </div>
+
+  <div v-else v-loading="loading">
+    <!-- 导航工具条 -->
+    <div class="do-scrollSeg">
+      <el-scrollbar ref="navScrollRef">
+        <el-segmented
+          :style="{ width: navWidth }"
+          v-model="navIndex"
+          :options="navOpts"
+          size="default"
+        />
+      </el-scrollbar>
+    </div>
+
+    <!-- 进度条 -->
+    <div class="flex items-center justify-center gap-2 mt-2">
+      <el-text>{{ s.state.qIndex + 1 }} / {{ q.qCount }}</el-text>
+      <el-progress
+        :percentage="((s.state.qIndex + 1) / q.qCount) * 100"
+        :show-text="false"
+        style="flex-grow: 1"
+        id="el-progress"
+      />
+    </div>
+
+    <!-- 指示器 -->
+    <div class="flex items-center gap-2 mt-2">
+      <el-tag type="success">正确 {{ s.state.correctCount }}</el-tag>
+      <el-tag type="danger">错误 {{ s.state.wrongCount }}</el-tag>
+    </div>
+
+    <!-- 做题区 -->
+    <div class="my-5 mx-0">
+      <!-- 题目 -->
+      <div class="flex items-center gap-2">
+        <el-tag>{{ s.state.qIndex + 1 }}</el-tag>
+        {{ q.questions[s.state.qIndex].title }}
+      </div>
+
+      <div class="mt-2">
+        <el-tag :type="errColor">错误率: {{ errRate }}</el-tag>
+      </div>
+
+      <!-- 选项 -->
+      <div class="flex flex-col my-5 mx-0">
+        <el-radio-group
+          v-model="a.answerSheet[s.state.qIndex]"
+          class="do-option-group"
+          v-if="q.questions[s.state.qIndex].type === 'single'"
+        >
+          <el-radio
+            v-for="(option, index) in q.questions[s.state.qIndex].options"
+            :key="index"
+            :value="index"
+            border
+            size="large"
+            style="width: 100%"
+            @change="selectAnswer"
+          >
+            <el-text>{{ option }}</el-text>
+          </el-radio>
+        </el-radio-group>
+
+        <el-checkbox-group
+          v-model="a.answerSheet[s.state.qIndex]"
+          class="do-option-group"
+          v-if="q.questions[s.state.qIndex].type === 'multiple'"
+        >
+          <el-checkbox
+            v-for="(option, index) in q.questions[s.state.qIndex].options"
+            :key="index"
+            :value="index"
+            border
+            size="large"
+            style="width: 100%"
+            @change="selectAnswer"
+          >
+            <el-text>{{ option }}</el-text>
+          </el-checkbox>
+        </el-checkbox-group>
+      </div>
+    </div>
+
+    <!-- 控制按钮 -->
+    <div id="do-control">
+      <div>
+        <el-button type="primary" @click="prev" :disabled="s.state.qIndex === 0">上一题</el-button>
+        <el-button type="primary" @click="next">下一题</el-button>
+      </div>
+      <div>
+        <el-button type="warning" @click="restart">重新开始</el-button>
+        <el-button type="primary" @click="showAnswer">查看答案</el-button>
+      </div>
+    </div>
+
+    <!-- 查看答案框 -->
+    <div v-if="showCheck" class="mt-4">
+      <DoShowAnswer :question="q.questions[checkIndex]" :isWrong="errIndex !== -1" />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.do-option-group {
+  @apply flex flex-col items-start gap-3 w-full;
+}
+
+.do-option-group > :deep(*) {
+  height: fit-content !important;
+  min-height: 40px;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  margin: 0 !important;
+}
+
+.do-scrollSeg :deep(.el-segmented__item-selected),
+.do-scrollSeg :deep(.el-segmented__item-label) {
+  transition: unset;
+}
+
+.do-scrollSeg :deep(.el-scrollbar__bar) {
+  display: none;
+}
+
+#do-control {
+  @apply flex items-center justify-between gap-3;
+}
+
+@media (max-width: 768px) {
+  #do-control {
+    flex-direction: column-reverse;
+    align-items: flex-end;
+  }
+}
+</style>

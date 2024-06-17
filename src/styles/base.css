@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    '微软雅黑', Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Primary: Enchanting Sapphire */
+  --primary-100: #f2f5ff;
+  --primary-200: #c1d1fe;
+  --primary-300: #8eb0fb;
+  --primary-400: #5a92f1;
+  --primary-500: #2877de;
+  --primary-600: #0d5db0;
+  --primary-700: #034982;
+  --primary-800: #003354;
+  --primary-900: #001926;
+
+  /* Accent: Mimolette Orange */
+  --accent-100: #fffcf2;
+  --accent-200: #ffedba;
+  --accent-300: #fcd581;
+  --accent-400: #f6b547;
+  --accent-500: #eb8c10;
+  --accent-600: #ba6105;
+  --accent-700: #883e01;
+  --accent-800: #572200;
+  --accent-900: #260d00;
+
+  /* Neutral */
+  --neutral-100: #fafafc;
+  --neutral-200: #e9ebf0;
+  --neutral-300: #d9dce3;
+  --neutral-400: #c9ced6;
+  --neutral-500: #b9c0c9;
+  --neutral-600: #939aa1;
+  --neutral-700: #6d7378;
+  --neutral-800: #484c4f;
+  --neutral-900: #222526;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
