@@ -97,7 +97,7 @@ export function parseQuestion(data: string, customFilter: string): Array<Questio
 
   /* eslint-disable no-useless-escape */
   const qNumRegex = /^\d+[\.．)）、]/;
-  const optionRegex = /(?:^[A-Z]|\s[B-Z])[\.．:：\s]/i;
+  const optionRegex = /(?:^[A-Z]|\s[B-Z])[\.．:：、\s]/i;
   const bracketLetter = /[\(（]\s*?[A-Z]{1,4}\s*?[\)）]/i;
   const bracketBoolean = /[\(（]\s*?(正确|对|错|[⍻✓✓☑✗✘x×X✕☓✖]).*?[\)）]/u;
   const booleanRegex = /正确|对|错|[⍻✓✓☑✗✘x×X✕☓✖]/u;
@@ -274,7 +274,7 @@ export function parseQuestion(data: string, customFilter: string): Array<Questio
     } else {
       if (currentQuestion.title) {
         currentQuestion.title += line;
-      } else if (questions[questions.length - 1].explain) {
+      } else if (questions[questions.length - 1] && questions[questions.length - 1].explain) {
         questions[questions.length - 1].explain += line;
       } else {
         currentQuestion.title = line;
