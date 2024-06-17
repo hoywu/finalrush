@@ -34,7 +34,7 @@ const navOpts = computed(() => {
 });
 const navWidth = computed(() => {
   // 计算导航条宽度
-  return `${q.qCount * 55}px`;
+  return `max(100%, ${q.qCount * 55}px)`;
 });
 const { width } = useWindowSize();
 const navMid = computed(() => {
