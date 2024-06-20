@@ -134,11 +134,22 @@ function clear() {
 
 <template>
   <div id="data-button-group">
-    <el-button type="primary" :icon="IconLoad" @click="importDialogVisible = true" />
-    <el-button type="success" :icon="IconSave" @click="saveDialogVisible = true" />
+    <el-button
+      id="data_load_btn"
+      type="primary"
+      :icon="IconLoad"
+      @click="importDialogVisible = true"
+    />
+    <el-button
+      id="data_save_btn"
+      type="success"
+      :icon="IconSave"
+      @click="saveDialogVisible = true"
+    />
+
     <ElemPopover>
       <template #reference>
-        <el-button type="primary" :icon="IconAction">操作</el-button>
+        <el-button id="data_action_btn" type="primary" :icon="IconAction">操作</el-button>
       </template>
       <el-button text @click="showAnswer = !showAnswer">显示/隐藏答案</el-button>
       <el-button text @click="showExplan = !showExplan">显示/隐藏解析</el-button>

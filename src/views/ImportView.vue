@@ -44,14 +44,18 @@ async function importQuestion(append: boolean) {
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
+  <div id="import_input_group" class="flex flex-col gap-2">
     <el-input v-model="nameInput" placeholder="题库名称 (覆盖导入时有效)" />
 
     <el-input
       v-model="importQuestionInput"
       :autosize="{ minRows: 6, maxRows: 6 }"
       type="textarea"
-      placeholder="在此粘贴题库"
+      placeholder="在此粘贴题库
+- 题面以序号开头 (可后跟多行)
+- 选项与题面换行分隔，选项行以字母开头 (可单/多行)
+- 答案单独成行、或以字母形式填在题面括号中
+- 解析行以 “答案解析:” 或 “解析:” 开头 (可选)"
     />
     <el-input
       v-model="customFilter"

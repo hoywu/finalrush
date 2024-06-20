@@ -18,6 +18,7 @@ declare module 'vue' {
     ElemPopover: typeof import('./../src/components/ElemPopover.vue')['default']
     ElInput: typeof import('element-plus/es')['ElInput']
     ElInputNumber: typeof import('element-plus/es')['ElInputNumber']
+    ElLink: typeof import('element-plus/es')['ElLink']
     ElOption: typeof import('element-plus/es')['ElOption']
     ElPagination: typeof import('element-plus/es')['ElPagination']
     ElPopover: typeof import('element-plus/es')['ElPopover']
@@ -34,6 +35,7 @@ declare module 'vue' {
     'IconMaterialSymbols:deleteForeverRounded': typeof import('~icons/material-symbols/delete-forever-rounded')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TheTour: typeof import('./../src/components/TheTour.vue')['default']
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

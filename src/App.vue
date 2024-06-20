@@ -19,6 +19,7 @@ const navList = [
           :key="nav.route"
           :to="{ name: nav.route }"
           :class="{ active: route.name === nav.route }"
+          :id="'nav_' + nav.route"
         >
           {{ nav.name }}
         </RouterLink>

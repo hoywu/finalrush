@@ -18,6 +18,9 @@ onMounted(() => {
   navScrollToMid();
 });
 
+/*** 引导 ***/
+const openTour = ref(false);
+
 const loading = ref(false);
 /*** 查看答案框 ***/
 const errIndex = ref(-1);
@@ -180,8 +183,13 @@ function wrongAnswer(index: number) {
 <template>
   <div v-if="q.isEmpty()">
     <el-alert title="题库为空" type="warning">
-      <el-text>请先导入题库</el-text>
+      <div class="flex gap-3">
+        <el-text>请先导入题库</el-text>
+        <el-button type="primary" size="small" @click="openTour = true">查看教程</el-button>
+      </div>
     </el-alert>
+
+    <TheTour v-model="openTour" />
   </div>
 
   <div v-else v-loading="loading">
