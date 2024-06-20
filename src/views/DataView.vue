@@ -3,8 +3,8 @@ import { ElNotification } from 'element-plus';
 import { useStateStore } from '@/stores/state';
 import { useQuestionStore, type Question } from '@/stores/question';
 import { useAnswerStore } from '@/stores/answerSheet';
-import IconSave from '~icons/uil/export';
 import IconLoad from '~icons/uil/import';
+import IconSave from '~icons/uil/export';
 import IconAction from '~icons/codicon/github-action';
 import IconRemove from '~icons/material-symbols/delete-rounded';
 
@@ -134,8 +134,8 @@ function clear() {
 
 <template>
   <div id="data-button-group">
-    <el-button type="success" :icon="IconSave" @click="saveDialogVisible = true" />
     <el-button type="primary" :icon="IconLoad" @click="importDialogVisible = true" />
+    <el-button type="success" :icon="IconSave" @click="saveDialogVisible = true" />
     <ElemPopover>
       <template #reference>
         <el-button type="primary" :icon="IconAction">操作</el-button>
