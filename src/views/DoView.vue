@@ -242,7 +242,7 @@ function wrongAnswer(index: number) {
             style="width: 100%"
             @change="selectAnswer"
           >
-            <el-text>{{ option }}</el-text>
+            <el-text :style="{ fontSize: c.optionFontSize + 'px' }">{{ option }}</el-text>
           </el-radio>
         </el-radio-group>
 
@@ -260,7 +260,7 @@ function wrongAnswer(index: number) {
             style="width: 100%"
             @change="selectAnswer"
           >
-            <el-text>{{ option }}</el-text>
+            <el-text :style="{ fontSize: c.optionFontSize + 'px' }">{{ option }}</el-text>
           </el-checkbox>
         </el-checkbox-group>
       </div>
