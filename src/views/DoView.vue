@@ -217,7 +217,7 @@ function wrongAnswer(index: number) {
     <!-- 做题区 -->
     <div class="my-5 mx-0">
       <!-- 题目 -->
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2" :style="{ fontSize: c.titleFontSize + 'px' }">
         <el-tag>{{ s.state.qIndex + 1 }}</el-tag>
         {{ q.questions[s.state.qIndex].title }}
       </div>
