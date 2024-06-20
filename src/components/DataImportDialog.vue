@@ -19,9 +19,17 @@ interface File {
   url: string;
 }
 const fileList = ref([] as Array<File>);
-axios.get('dataList.json').then((response) => {
-  fileList.value = response.data;
-});
+axios
+  .get('dataList.json', {
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+      Expires: '0',
+    },
+  })
+  .then((response) => {
+    fileList.value = response.data;
+  });
 
 const iType = ref(1);
 const onlineFn = ref();
