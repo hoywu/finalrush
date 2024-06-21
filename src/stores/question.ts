@@ -99,9 +99,9 @@ export function parseQuestion(data: string, customFilter: string): Array<Questio
   const qNumRegex = /^\d+[\.．)）、]/;
   const optionRegex = /(?:^[A-Z]|\s[B-Z])[\.．:：、\s]/i;
   const bracketLetter = /[\(（]\s*?[A-Z]{1,4}\s*?[\)）]/i;
-  const bracketBoolean = /[\(（]\s*?(正确|对|错|[⍻✓✓☑✗✘x×X✕☓✖]).*?[\)）]/u;
-  const booleanRegex = /正确|对|错|[⍻✓✓☑✗✘x×X✕☓✖]/u;
-  const trueRegex = /正确|对|[⍻✓✓☑]/u;
+  const bracketBoolean = /[\(（]\s*?(正确|对|错|[⍻✓✓√☑✗✘x×X✕☓✖]).*?[\)）]/u;
+  const booleanRegex = /正确|对|错|[⍻✓✓√☑✗✘x×X✕☓✖]/u;
+  const trueRegex = /正确|对|[⍻✓✓√☑]/u;
 
   interface Answer {
     type: 'letter' | 'boolean';
