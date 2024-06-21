@@ -21,6 +21,17 @@ const driverObj = driver({
         onNextClick: () => {
           moveNextUntil('#data_load_btn');
         },
+        onCloseClick: () => {
+          driverObj.destroy();
+        },
+        onPopoverRender: (popover) => {
+          const info = document.getElementById('tour_info_text')?.cloneNode(true);
+          if (info && info instanceof HTMLElement) {
+            info.id = '';
+            info.style.display = 'block';
+            popover.description.appendChild(info);
+          }
+        },
       },
       onHighlightStarted: () => {
         router.push({ name: 'data' });
@@ -34,6 +45,9 @@ const driverObj = driver({
         side: 'bottom',
         prevBtnText: '上一步',
         nextBtnText: '下一步',
+        onCloseClick: () => {
+          driverObj.destroy();
+        },
       },
     },
     {
@@ -44,6 +58,9 @@ const driverObj = driver({
         side: 'bottom',
         prevBtnText: '上一步',
         nextBtnText: '下一步',
+        onCloseClick: () => {
+          driverObj.destroy();
+        },
       },
     },
     {
@@ -54,6 +71,9 @@ const driverObj = driver({
         side: 'bottom',
         prevBtnText: '上一步',
         nextBtnText: '下一步',
+        onCloseClick: () => {
+          driverObj.destroy();
+        },
       },
     },
     {
@@ -71,6 +91,9 @@ const driverObj = driver({
         onNextClick: () => {
           moveNextUntil('#import_input_group');
         },
+        onCloseClick: () => {
+          driverObj.destroy();
+        },
       },
       onHighlightStarted: () => {
         router.push({ name: 'import' });
@@ -87,6 +110,10 @@ const driverObj = driver({
       },
     },
   ],
+  onDestroyStarted: () => {
+    if (driverObj.hasNextStep()) driverObj.moveNext();
+    else driverObj.destroy();
+  },
   onDestroyed: () => {
     router.push({ name: 'do' });
     openTour.value = false;
@@ -134,7 +161,9 @@ function waitForElem(selector: string) {
 </script>
 
 <template>
-  <div></div>
+  <div id="tour_info_text" style="display: none">
+    <el-text type="primary">(点击屏幕任意位置 继续教程)</el-text>
+  </div>
 </template>
 
 <style scoped></style>
