@@ -107,7 +107,12 @@ function load(): Promise<void> {
           <el-radio :value="3">JSON 文件</el-radio>
         </el-radio-group>
 
-        <el-select v-if="iType === 1" v-model="onlineFn" placeholder="选择在线题库">
+        <el-select
+          v-if="iType === 1"
+          v-model="onlineFn"
+          value-key="name"
+          placeholder="选择在线题库"
+        >
           <el-option v-for="f of fileList" :key="f.name" :label="f.name" :value="f" />
         </el-select>
         <el-input
