@@ -92,7 +92,13 @@ export function loadFromJSON(q: any, a: any, s: any, name: string, text: string)
 export function loadFromServer(q: any, a: any, s: any, name: string, url: string): Promise<void> {
   // 从服务器导入
   return axios
-    .get('json/' + url)
+    .get('json/' + url, {
+      headers: {
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    })
     .then((response) => {
       q.recover(name, response.data);
       a.reset();
