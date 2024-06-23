@@ -29,10 +29,24 @@ function getOptionType(index: number) {
   <el-alert :title="elAlertTitle" :type="elAlertType">
     <el-text>{{ question.title }}</el-text>
 
-    <div id="current-answer-tag">
+    <!-- 选择题 -->
+    <div v-if="question.type === 'single' || question.type === 'multiple'" class="answer_tags">
       <el-tag v-for="(option, index) in question.options" :key="index" :type="getOptionType(index)">
         {{ option }}
       </el-tag>
+    </div>
+
+    <!-- 填空题 -->
+    <div v-if="question.type === 'blank'" class="answer_tags flex-col items-start">
+      <el-tag v-for="(answer, index) in question.answer" :key="index" type="success">
+        {{ answer }}
+      </el-tag>
+    </div>
+
+    <!-- 简答题 -->
+    <div v-if="question.type === 'short_answer'" class="my-3">
+      <el-text>参考答案：</el-text>
+      <el-text>{{ question.answer }}</el-text>
     </div>
 
     <div v-if="question.explain">
@@ -43,14 +57,14 @@ function getOptionType(index: number) {
 </template>
 
 <style scoped>
-#current-answer-tag {
+.answer_tags {
   display: flex;
   flex-wrap: wrap;
   margin: 5px 0;
   gap: 5px;
 }
 
-#current-answer-tag > * {
+.answer_tags > * {
   white-space: normal;
   height: fit-content;
   min-height: 24px;

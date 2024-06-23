@@ -2,13 +2,14 @@ import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 import _ from 'lodash';
 
-export type QuestionType = 'single' | 'multiple';
+// 单选、多选、填空、简答
+export type QuestionType = 'single' | 'multiple' | 'blank' | 'short_answer';
 
 export interface Question {
   type: QuestionType;
   title: string;
   options: Array<string>;
-  answer: number | Array<number> | string;
+  answer: number | Array<number> | string | Array<string>;
   explain: string;
   doNum: number;
   errNum: number;
@@ -33,6 +34,11 @@ export const useQuestionStore = defineStore(
       return questions.value[index].type === 'multiple';
     }
 
+    function supportCheck(index: number): boolean {
+      // 题型是否支持系统判题
+      return questions.value[index].type !== 'short_answer';
+    }
+
     function checkAnswer(index: number, userAnswer: any): boolean {
       // 检查答案
       let correct;
@@ -42,6 +48,12 @@ export const useQuestionStore = defineStore(
           break;
         case 'multiple':
           correct = checkMultiple(questions.value[index].answer as Array<number>, userAnswer);
+          break;
+        case 'blank':
+          correct = checkBlank(questions.value[index].answer as Array<string>, userAnswer);
+          break;
+        case 'short_answer':
+          correct = true; // TODO 当前简答为人工判题
           break;
       }
       return correct;
@@ -77,6 +89,7 @@ export const useQuestionStore = defineStore(
       isEmpty,
       isSingle,
       isMultiple,
+      supportCheck,
       checkAnswer,
       plusCorrect,
       plusWrong,
@@ -304,11 +317,7 @@ export function parseQuestion(data: string, customFilter: string): Array<Questio
 
 function checkSingle(answer: number, userAnswer: number): boolean {
   // 检查单选题
-  if (userAnswer !== answer) {
-    return false;
-  } else {
-    return true;
-  }
+  return answer === userAnswer;
 }
 
 function checkMultiple(answer: Array<number>, userAnswer: Array<number>): boolean {
@@ -327,4 +336,18 @@ function checkMultiple(answer: Array<number>, userAnswer: Array<number>): boolea
     }
   }
   return correct;
+}
+
+function checkBlank(answer: Array<string>, userAnswer: Array<string>): boolean {
+  // 检查填空题
+  if (!answer || !userAnswer || answer.length !== userAnswer.length) {
+    return false;
+  }
+
+  for (let i = 0; i < answer.length; i++) {
+    if (answer[i].trim().toLowerCase() !== userAnswer[i].trim().toLowerCase()) {
+      return false;
+    }
+  }
+  return true;
 }

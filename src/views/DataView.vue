@@ -65,7 +65,9 @@ function shuffleSelect() {
         // 多选打乱选项
         const answer = [] as Array<string>;
         question.answer.forEach((answerIndex) => {
-          answer.push(question.options[answerIndex]);
+          if (typeof answerIndex === 'number') {
+            answer.push(question.options[answerIndex]);
+          }
         });
         question.options.sort(() => Math.random() - 0.5);
         const newAnswer = [] as Array<number>;
@@ -179,7 +181,7 @@ function clear() {
     </el-table-column>
     <el-table-column v-if="showAnswer" prop="answer" label="答案" resizable>
       <template #default="scope">
-        <div class="data-option-group" v-if="scope.row.type !== 'multiple'">
+        <div class="data-option-group" v-if="scope.row.type === 'single'">
           <el-tag type="success">
             {{ scope.row.options[scope.row.answer] }}
           </el-tag>

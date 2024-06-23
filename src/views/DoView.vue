@@ -28,6 +28,8 @@ const showCheck = ref(false);
 const checkIndex = computed(() => {
   return errIndex.value !== -1 ? errIndex.value : s.state.qIndex;
 });
+/*** 手动判题 ***/
+const manualCheck = ref(true);
 
 /*** 导航工具条 ***/
 const navIndex = ref(s.state.qIndex + 1);
@@ -78,7 +80,15 @@ const errColor = computed(() => {
   }
 });
 
-/*** 按钮事件 ***/
+/*** 事件函数 ***/
+function setArrayAnswer(ans: string, index: number) {
+  // 在答题卡中存放数组答案
+  if (!a.answerSheet[s.state.qIndex]) {
+    (a.answerSheet[s.state.qIndex] as any) = [];
+  }
+  (a.answerSheet[s.state.qIndex][index] as any) = ans;
+}
+
 function selectAnswer() {
   // 选择答案回调
   setTimeout(() => {
@@ -105,12 +115,20 @@ function prev() {
 
 function next() {
   // 下一题按钮
-  let correct = q.checkAnswer(s.state.qIndex, a.get(s.state.qIndex));
+  let correct;
+  if (!q.supportCheck(s.state.qIndex)) {
+    // 需人工判题的题型
+    correct = manualCheck.value;
+  } else {
+    // 其他题型
+    correct = q.checkAnswer(s.state.qIndex, a.get(s.state.qIndex));
+  }
   correct ? correctAnswer(s.state.qIndex) : wrongAnswer(s.state.qIndex);
   if (s.state.qIndex === q.qCount - 1) {
     submit();
     return;
   }
+  manualCheck.value = true;
   s.state.qIndex++;
 }
 
@@ -236,6 +254,7 @@ function wrongAnswer(index: number) {
 
       <!-- 选项 -->
       <div class="flex flex-col my-5 mx-0">
+        <!-- 单选 -->
         <el-radio-group
           v-model="a.answerSheet[s.state.qIndex]"
           class="do-option-group"
@@ -254,6 +273,7 @@ function wrongAnswer(index: number) {
           </el-radio>
         </el-radio-group>
 
+        <!-- 多选 -->
         <el-checkbox-group
           v-model="a.answerSheet[s.state.qIndex]"
           class="do-option-group"
@@ -271,6 +291,41 @@ function wrongAnswer(index: number) {
             <el-text :style="{ fontSize: c.optionFontSize + 'px' }">{{ option }}</el-text>
           </el-checkbox>
         </el-checkbox-group>
+
+        <!-- 填空 -->
+        <div class="flex flex-col gap-2" v-if="q.questions[s.state.qIndex].type === 'blank'">
+          <div
+            class="flex items-center gap-2"
+            v-for="(_, i) in q.questions[s.state.qIndex].answer"
+            :key="i"
+          >
+            <el-tag>{{ i + 1 }}</el-tag>
+            <ElemStatefulInput @input="setArrayAnswer($event, i)" placeholder="请填空" />
+          </div>
+        </div>
+
+        <!-- 简答 -->
+        <div v-if="q.questions[s.state.qIndex].type === 'short_answer'">
+          <el-alert v-if="!c.skipSAQ" title="请人工判题" type="info" :closable="false">
+            <el-radio-group v-model="manualCheck">
+              <el-radio :value="true">正确</el-radio>
+              <el-radio :value="false">错误</el-radio>
+            </el-radio-group>
+          </el-alert>
+
+          <el-input
+            v-if="!c.skipSAQ"
+            class="mt-3"
+            type="textarea"
+            :rows="5"
+            placeholder="请简答"
+            v-model="a.answerSheet[s.state.qIndex]"
+          />
+
+          <el-card v-if="c.skipSAQ">
+            {{ q.questions[s.state.qIndex].answer }}
+          </el-card>
+        </div>
       </div>
     </div>
 
