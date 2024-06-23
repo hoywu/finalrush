@@ -322,7 +322,7 @@ function wrongAnswer(index: number) {
             v-model="a.answerSheet[s.state.qIndex]"
           />
 
-          <el-card v-if="c.skipSAQ">
+          <el-card v-if="c.skipSAQ" class="whitespace-pre-wrap">
             {{ q.questions[s.state.qIndex].answer }}
           </el-card>
         </div>

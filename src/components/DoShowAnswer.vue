@@ -46,12 +46,12 @@ function getOptionType(index: number) {
     <!-- 简答题 -->
     <div v-if="question.type === 'short_answer'" class="my-3">
       <el-text>参考答案：</el-text>
-      <el-text>{{ question.answer }}</el-text>
+      <el-text class="whitespace-pre-wrap">{{ question.answer }}</el-text>
     </div>
 
     <div v-if="question.explain">
       <el-text>解析：</el-text>
-      <el-text>{{ question.explain }}</el-text>
+      <el-text class="whitespace-pre-wrap">{{ question.explain }}</el-text>
     </div>
   </el-alert>
 </template>
