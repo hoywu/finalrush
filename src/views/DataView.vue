@@ -21,7 +21,7 @@ const saveDialogVisible = ref(false);
 
 // 表格分页
 const page = ref(1);
-const pageSize = ref(10);
+const pageSize = ref(20);
 const search = ref('');
 const tableData = computed(() => q.questions.filter(filterFn));
 function filterFn(data: Question, index: number) {
