@@ -9,6 +9,7 @@ export const useConfigStore = defineStore(
     const skipSAQ = ref(false); // 不做简答
     const titleFontSize = ref(16); // 题目字体大小
     const optionFontSize = ref(14); // 选项字体大小
+    const codeBlockFontSize = ref(14); // 代码块字体大小
 
     function reset() {
       autoNext.value = true;
@@ -18,7 +19,15 @@ export const useConfigStore = defineStore(
       optionFontSize.value = 14;
     }
 
-    return { autoNext, immediateCheck, skipSAQ, titleFontSize, optionFontSize, reset };
+    return {
+      autoNext,
+      immediateCheck,
+      skipSAQ,
+      titleFontSize,
+      optionFontSize,
+      codeBlockFontSize,
+      reset,
+    };
   },
   {
     persist: true,

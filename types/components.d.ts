@@ -16,6 +16,7 @@ declare module 'vue' {
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElCheckboxGroup: typeof import('element-plus/es')['ElCheckboxGroup']
     ElDialog: typeof import('element-plus/es')['ElDialog']
+    ElemCode: typeof import('./../src/components/ElemCode.vue')['default']
     ElemPopover: typeof import('./../src/components/ElemPopover.vue')['default']
     ElemStatefulInput: typeof import('./../src/components/ElemStatefulInput.vue')['default']
     ElInput: typeof import('element-plus/es')['ElInput']

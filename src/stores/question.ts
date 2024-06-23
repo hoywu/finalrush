@@ -2,8 +2,8 @@ import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 import _ from 'lodash';
 
-// 单选、多选、填空、简答
-export type QuestionType = 'single' | 'multiple' | 'blank' | 'short_answer';
+// 单选、多选、填空、简答、编程
+export type QuestionType = 'single' | 'multiple' | 'blank' | 'short_answer' | 'coding';
 
 export interface Question {
   type: QuestionType;
@@ -36,7 +36,10 @@ export const useQuestionStore = defineStore(
 
     function supportCheck(index: number): boolean {
       // 题型是否支持系统判题
-      return questions.value[index].type !== 'short_answer';
+      if (questions.value[index].type in ['single', 'multiple', 'blank']) {
+        return true;
+      }
+      return false;
     }
 
     function checkAnswer(index: number, userAnswer: any): boolean {
@@ -52,8 +55,8 @@ export const useQuestionStore = defineStore(
         case 'blank':
           correct = checkBlank(questions.value[index].answer as Array<string>, userAnswer);
           break;
-        case 'short_answer':
-          correct = true; // TODO 当前简答为人工判题
+        default:
+          correct = true; // TODO 简答、编程题为人工判题
           break;
       }
       return correct;

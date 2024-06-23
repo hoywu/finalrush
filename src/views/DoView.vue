@@ -326,6 +326,11 @@ function wrongAnswer(index: number) {
             {{ q.questions[s.state.qIndex].answer }}
           </el-card>
         </div>
+
+        <!-- 编程 -->
+        <div v-if="q.questions[s.state.qIndex].type === 'coding'">
+          <ElemCode :code="q.questions[s.state.qIndex].answer" />
+        </div>
       </div>
     </div>
 
