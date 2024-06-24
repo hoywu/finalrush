@@ -8,8 +8,8 @@ export type QuestionType = 'single' | 'multiple' | 'blank' | 'short_answer' | 'c
 /* eslint-disable no-useless-escape */
 const qNumRegex = /^\d+[\.．)）、]/;
 const optionRegex = /(?:^[A-Z]|\s[B-Z])[\.．:：、\s]/i;
-const bracketAny = /[\(（]\s*?(\S+?)\s*?[\)）]/;
-const bracketAnyG = /[\(（]\s*?(\S+?)\s*?[\)）]/g;
+const bracketAny = /[\(（]\s*?([^)].*?)\s*?[\)）]/;
+const bracketAnyG = /[\(（]\s*?([^)].*?)\s*?[\)）]/g;
 const bracketLetter = /[\(（]\s*?[A-Z]{1,6}\s*?[\)）]/i;
 const bracketBoolean = /[\(（]\s*?(正确|对|错|[⍻✓✓√☑✗✘x×X✕☓✖]).*?[\)）]/u;
 const booleanRegex = /正确|对|错|[⍻✓✓√☑✗✘x×X✕☓✖]/u;
