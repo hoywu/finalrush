@@ -82,7 +82,7 @@ export const useQuestionStore = defineStore(
     }
 
     function append(qs: Array<Question>) {
-      questions.value = questions.value.concat(qs);
+      questions.value.push(...qs);
     }
 
     function recover(name: string, qs: Array<Question>) {
