@@ -4,6 +4,10 @@
   white-space: unset !important;
 }
 
+.el-dialog {
+  width: 90% !important;
+}
+
 ._divider {
   display: block;
   width: 100%;
