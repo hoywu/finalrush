@@ -5,6 +5,16 @@ import _ from 'lodash';
 // 单选、多选、填空、简答、编程
 export type QuestionType = 'single' | 'multiple' | 'blank' | 'short_answer' | 'coding';
 
+/* eslint-disable no-useless-escape */
+const qNumRegex = /^\d+[\.．)）、]/;
+const optionRegex = /(?:^[A-Z]|\s[B-Z])[\.．:：、\s]/i;
+const bracketAny = /[\(（]\s*?(\S+?)\s*?[\)）]/;
+const bracketAnyG = /[\(（]\s*?(\S+?)\s*?[\)）]/g;
+const bracketLetter = /[\(（]\s*?[A-Z]{1,4}\s*?[\)）]/i;
+const bracketBoolean = /[\(（]\s*?(正确|对|错|[⍻✓✓√☑✗✘x×X✕☓✖]).*?[\)）]/u;
+const booleanRegex = /正确|对|错|[⍻✓✓√☑✗✘x×X✕☓✖]/u;
+const trueRegex = /正确|对|[⍻✓✓√☑]/u;
+
 export interface Question {
   type: QuestionType;
   title: string;
@@ -106,18 +116,167 @@ export const useQuestionStore = defineStore(
   }
 );
 
-export function parseQuestion(data: string, customFilter: string): Array<Question> {
-  // 从文本中解析题目
+export function parseSAQ(data: string, customFilter: string): Array<Question> {
+  // 从文本中解析简答题
   const questions = [] as Array<Question>;
   const lines = data.split('\n').filter((line) => line.trim() !== '');
+  const regExps = customFilter.split('\n').filter((line) => line.trim() !== '');
 
-  /* eslint-disable no-useless-escape */
-  const qNumRegex = /^\d+[\.．)）、]/;
-  const optionRegex = /(?:^[A-Z]|\s[B-Z])[\.．:：、\s]/i;
-  const bracketLetter = /[\(（]\s*?[A-Z]{1,4}\s*?[\)）]/i;
-  const bracketBoolean = /[\(（]\s*?(正确|对|错|[⍻✓✓√☑✗✘x×X✕☓✖]).*?[\)）]/u;
-  const booleanRegex = /正确|对|错|[⍻✓✓√☑✗✘x×X✕☓✖]/u;
-  const trueRegex = /正确|对|[⍻✓✓√☑]/u;
+  const done = (q: Question) => {
+    if (!q.answer) {
+      const i = q.title.indexOf('\n');
+      if (i !== -1) {
+        q.answer = q.title.slice(i + 1);
+        q.title = q.title.slice(0, i);
+      }
+    }
+    questions.push(q);
+  };
+
+  const newQ = (): Question => {
+    return {
+      type: 'short_answer',
+      title: '',
+      options: [],
+      answer: '',
+      explain: '',
+      doNum: 0,
+      errNum: 0,
+    };
+  };
+  let currentQ = newQ();
+
+  for (let line of lines) {
+    line = line.trim();
+    if (customFilter !== '') {
+      // 自定义过滤
+      let flag = false;
+      for (const regExp of regExps) {
+        if (line.search(new RegExp(regExp)) !== -1) {
+          flag = true;
+          break;
+        }
+      }
+      if (flag) continue;
+    }
+
+    if (line.search(/^得分[:：][\d\.\s]+?分?$/u) !== -1) {
+      // 过滤得分行
+      continue;
+    }
+
+    const ansReg = /((^答)|(^答案)|(^我的答案)|(^参考答案))[:：]/u;
+    if (line.search(ansReg) !== -1) {
+      // 答案行
+      currentQ.answer = line.replace(ansReg, '');
+    } else if (line.search(qNumRegex) !== -1) {
+      // 题号
+      if (currentQ.title) {
+        done(currentQ); // 完成上一题
+        currentQ = newQ();
+      }
+      currentQ.title = line;
+    } else {
+      if (currentQ.answer) currentQ.answer += '\n' + line;
+      else currentQ.title += '\n' + line;
+    }
+  }
+
+  if (currentQ.title) {
+    // 最后一题
+    done(currentQ);
+  }
+
+  return questions;
+}
+
+export function parseBlankQuestion(data: string, customFilter: string): Array<Question> {
+  // 从文本中解析填空题
+  const questions = [] as Array<Question>;
+  const lines = data.split('\n').filter((line) => line.trim() !== '');
+  const regExps = customFilter.split('\n').filter((line) => line.trim() !== '');
+
+  const getAnswersFromTitle = (title: string): Array<string> => {
+    const answers = [] as Array<string>;
+    const match = title.match(bracketAnyG);
+    if (match) {
+      answers.push(...match.map((m) => m.match(bracketAny)![1]));
+    }
+    return answers;
+  };
+  const removeAnswerFromTitle = (title: string): string => {
+    return title.replace(bracketAnyG, '( )');
+  };
+  const done = (q: Question) => {
+    q.answer = getAnswersFromTitle(q.title);
+    q.title = removeAnswerFromTitle(q.title);
+    questions.push(q);
+  };
+
+  const newQ = (): Question => {
+    return {
+      type: 'blank',
+      title: '',
+      options: [],
+      answer: '',
+      explain: '',
+      doNum: 0,
+      errNum: 0,
+    };
+  };
+  let currentQ = newQ();
+
+  for (let line of lines) {
+    line = line.trim();
+    if (customFilter !== '') {
+      // 自定义过滤
+      let flag = false;
+      for (const regExp of regExps) {
+        if (line.search(new RegExp(regExp)) !== -1) {
+          flag = true;
+          break;
+        }
+      }
+      if (flag) continue;
+    }
+
+    if (line.search(/^得分[:：][\d\.\s]+?分?$/u) !== -1) {
+      // 过滤得分行
+      continue;
+    }
+    if (line.search(/(^(答案)?解析[:：])/u) !== -1) {
+      // 答案解析行，添加到最新一题的解析
+      questions[questions.length - 1].explain = line.replace(/(^(答案)?解析[:：])/u, '');
+      continue;
+    }
+
+    if (line.search(qNumRegex) !== -1) {
+      // 本行开头疑似题号
+      if (currentQ.title) {
+        // 上一题未结束
+        done(currentQ);
+        // 开始新题
+        currentQ = newQ();
+      }
+      currentQ.title = line;
+    } else {
+      currentQ.title += line;
+    }
+  }
+
+  if (currentQ.title) {
+    // 最后一题
+    done(currentQ);
+  }
+
+  return questions;
+}
+
+export function parseSelectQuestion(data: string, customFilter: string): Array<Question> {
+  // 从文本中解析选择题
+  const questions = [] as Array<Question>;
+  const lines = data.split('\n').filter((line) => line.trim() !== '');
+  const regExps = customFilter.split('\n').filter((line) => line.trim() !== '');
 
   interface Answer {
     type: 'letter' | 'boolean';
@@ -198,7 +357,6 @@ export function parseQuestion(data: string, customFilter: string): Array<Questio
 
     if (customFilter !== '') {
       // 自定义过滤
-      const regExps = customFilter.split('\n').filter((line) => line.trim() !== '');
       let flag = false;
       for (const regExp of regExps) {
         if (line.search(new RegExp(regExp)) !== -1) {
