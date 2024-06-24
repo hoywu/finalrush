@@ -88,7 +88,7 @@ function clearNum() {
     // eslint-disable-next-line no-useless-escape
     const qNumRegex = /^\d+[\.．)）、]/;
     q.questions.forEach((question) => {
-      question.title = question.title.replace(qNumRegex, '');
+      question.title = question.title.replace(qNumRegex, '').trim();
     });
     loading.value = false;
   }, 1);
