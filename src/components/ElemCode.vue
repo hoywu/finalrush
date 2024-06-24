@@ -5,7 +5,7 @@ import { useConfigStore } from '@/stores/config';
 const config = useConfigStore();
 
 const props = defineProps<{
-  code: any;
+  code: string | Array<string>;
 }>();
 
 const code = computed(() => {

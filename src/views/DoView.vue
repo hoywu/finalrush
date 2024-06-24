@@ -322,14 +322,14 @@ function wrongAnswer(index: number) {
             v-model="a.answerSheet[s.state.qIndex]"
           />
 
-          <el-card v-if="c.skipSAQ" class="whitespace-pre-wrap">
-            {{ q.questions[s.state.qIndex].answer }}
-          </el-card>
+          <!-- prettier-ignore -->
+          <ElemCard :content="(q.questions[s.state.qIndex].answer as string)" />
         </div>
 
         <!-- 编程 -->
         <div v-if="q.questions[s.state.qIndex].type === 'coding'">
-          <ElemCode :code="q.questions[s.state.qIndex].answer" />
+          <!-- prettier-ignore -->
+          <ElemCode :code="(q.questions[s.state.qIndex].answer as Array<string>)" />
         </div>
       </div>
     </div>
