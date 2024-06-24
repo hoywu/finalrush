@@ -116,6 +116,62 @@ export const useQuestionStore = defineStore(
   }
 );
 
+export function parseAuto(data: string, customFilter: string): Array<Question> {
+  // [BETA] 根据标题自动选择解析函数
+  const questions = [] as Array<Question>;
+  const lines = data.split('\n').filter((line) => line.trim() !== '');
+  const regExps = customFilter.split('\n').filter((line) => line.trim() !== '');
+
+  const selectReg = /^.?\s*[\.．)）、]?\s*(判断题)|(选择题)/u;
+  const blankReg = /^.?\s*[\.．)）、]?\s*填空题/u;
+  const saqReg = /^.?\s*[\.．)）、]?\s*简答题/u;
+  const doParse = () => {
+    if (curData.length === 0) {
+      funcs.pop();
+      return;
+    }
+    if (funcs.length === 0) {
+      curData = [];
+      return;
+    }
+    questions.push(...funcs.pop()!(curData.join('\n'), ''));
+    curData = [];
+  };
+
+  const funcs: Array<Function> = [];
+  let curData: Array<string> = [];
+  for (let line of lines) {
+    line = line.trim();
+    if (customFilter !== '') {
+      // 自定义过滤
+      let flag = false;
+      for (const regExp of regExps) {
+        if (line.search(new RegExp(regExp)) !== -1) {
+          flag = true;
+          break;
+        }
+      }
+      if (flag) continue;
+    }
+
+    if (line.search(selectReg) !== -1) {
+      doParse();
+      funcs.push(parseSelectQuestion);
+    } else if (line.search(blankReg) !== -1) {
+      doParse();
+      funcs.push(parseBlankQuestion);
+    } else if (line.search(saqReg) !== -1) {
+      doParse();
+      funcs.push(parseSAQ);
+    } else {
+      curData.push(line);
+    }
+  }
+  doParse();
+
+  return questions;
+}
+
 export function parseSAQ(data: string, customFilter: string): Array<Question> {
   // 从文本中解析简答题
   const questions = [] as Array<Question>;

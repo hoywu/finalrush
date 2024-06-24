@@ -5,6 +5,7 @@ import {
   parseSelectQuestion,
   parseBlankQuestion,
   parseSAQ,
+  parseAuto,
 } from '@/stores/question';
 import { useAnswerStore } from '@/stores/answerSheet';
 import { useStateStore } from '@/stores/state';
@@ -35,8 +36,11 @@ const tips = [
   // 简答题提示
   `- 题面以序号开头 (可后跟多行)
 - 答案单独成行，若题目有多行，答案需以 “答案:/答:” 等标识开头`,
+  // 自动
+  `- 每组题目前需有单独一行标明题型
+- 其余规则与具体题型规则相同`,
 ];
-const parse: Array<Function> = [parseSelectQuestion, parseBlankQuestion, parseSAQ];
+const parse: Array<Function> = [parseSelectQuestion, parseBlankQuestion, parseSAQ, parseAuto];
 
 async function importQuestion(append: boolean) {
   const questions = parse[qtype.value](importQuestionInput.value, customFilter.value);
@@ -69,10 +73,11 @@ async function importQuestion(append: boolean) {
   <div id="import_input_group" class="flex flex-col gap-2">
     <el-input v-model="nameInput" placeholder="题库名称 (覆盖导入时有效)" />
 
-    <el-radio-group v-model="qtype">
+    <el-radio-group v-model="qtype" class="rbox flex gap-5">
       <el-radio :value="0">选择判断题</el-radio>
       <el-radio :value="1">填空题</el-radio>
       <el-radio :value="2">简答题</el-radio>
+      <el-radio :value="3">自动[Beta]</el-radio>
     </el-radio-group>
 
     <el-input
@@ -115,4 +120,8 @@ async function importQuestion(append: boolean) {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.rbox :deep(.el-radio) {
+  margin-right: 0;
+}
+</style>
