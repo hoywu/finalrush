@@ -65,6 +65,7 @@ function getOptionType(index: number) {
 }
 
 .answer_tags > * {
+  line-height: 1.4;
   white-space: normal;
   height: fit-content;
   min-height: 24px;
