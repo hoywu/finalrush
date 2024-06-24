@@ -252,6 +252,11 @@ function wrongAnswer(index: number) {
         <el-tag :type="errColor">错误率: {{ errRate }}</el-tag>
       </div>
 
+      <!-- 图片 -->
+      <div v-if="q.questions[s.state.qIndex].imgs" class="mt-2">
+        <img v-for="(img, i) of q.questions[s.state.qIndex].imgs" :key="i" :src="img" />
+      </div>
+
       <!-- 选项 -->
       <div class="flex flex-col my-5 mx-0">
         <!-- 单选 -->

@@ -18,6 +18,7 @@ const trueRegex = /正确|对|[⍻✓✓√☑]/u;
 export interface Question {
   type: QuestionType;
   title: string;
+  imgs?: Array<string>;
   options: Array<string>;
   answer: number | Array<number> | string | Array<string>;
   explain: string;
