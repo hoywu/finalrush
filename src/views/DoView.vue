@@ -366,6 +366,11 @@ function wrongAnswer(index: number) {
   margin: 0 !important;
 }
 
+.do-option-group :deep(*) {
+  white-space: normal;
+  line-height: 1.4;
+}
+
 .do-scrollSeg :deep(.el-segmented__item-selected),
 .do-scrollSeg :deep(.el-segmented__item-label) {
   transition: unset;
