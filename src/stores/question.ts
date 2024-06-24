@@ -122,7 +122,7 @@ export function parseAuto(data: string, customFilter: string): Array<Question> {
   const lines = data.split('\n').filter((line) => line.trim() !== '');
   const regExps = customFilter.split('\n').filter((line) => line.trim() !== '');
 
-  const selectReg = /^.?\s*[\.．)）、]?\s*(判断题)|(选择题)/u;
+  const selectReg = /^.?\s*[\.．)）、]?\s*(判断题)|(\S{0,4}选择题)|(\S选题)/u;
   const blankReg = /^.?\s*[\.．)）、]?\s*填空题/u;
   const saqReg = /^.?\s*[\.．)）、]?\s*简答题/u;
   const doParse = () => {
