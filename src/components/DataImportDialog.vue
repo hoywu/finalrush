@@ -98,9 +98,9 @@ function load(): Promise<void> {
 </script>
 
 <template>
-  <div v-loading="loading">
+  <div>
     <el-dialog class="max-w-96" v-model="visible" title="载入题库">
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2" v-loading="loading">
         <el-radio-group v-model="iType">
           <el-radio :value="1">在线题库</el-radio>
           <el-radio :value="2">本地题库</el-radio>
@@ -139,8 +139,8 @@ function load(): Promise<void> {
 
       <template #footer>
         <span>
-          <el-button @click="visible = false">取消</el-button>
-          <el-button type="primary" @click="importFile">导入</el-button>
+          <el-button :disabled="loading" @click="visible = false">取消</el-button>
+          <el-button :disabled="loading" type="primary" @click="importFile">导入</el-button>
         </span>
       </template>
     </el-dialog>
