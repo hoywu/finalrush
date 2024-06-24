@@ -20,7 +20,7 @@ const { isOutside } = useMouseInElement(boxRef);
 
 <template>
   <div class="relative" ref="boxRef">
-    <div v-if="!isOutside" class="cbox absolute right-2 flex gap-3 bg-white">
+    <div v-if="!isOutside" class="cbox absolute top-1 right-2 flex gap-3 bg-white">
       <el-checkbox v-model="c.cardLineBreak">换行</el-checkbox>
       <el-checkbox v-model="c.cardIndent">缩进</el-checkbox>
     </div>
@@ -32,10 +32,6 @@ const { isOutside } = useMouseInElement(boxRef);
 </template>
 
 <style scoped>
-.cbox {
-  top: -1rem;
-}
-
 .cbox > :deep(.el-checkbox) {
   margin-right: 0;
 }
