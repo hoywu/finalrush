@@ -25,11 +25,12 @@ export function tipOnce(key: string) {
   if (!tips.has(key)) return;
   const t = useTipsStore();
   if (t.isTipped(key)) return;
-  t.setTip(key);
-  startDriver(key);
+  startDriver(key, () => {
+    t.setTip(key);
+  });
 }
 
-function startDriver(key: string): Driver {
+function startDriver(key: string, after: Function = () => {}): Driver {
   const driverObj = driver({
     smoothScroll: true,
     overlayOpacity: 0.3,
@@ -53,6 +54,7 @@ function startDriver(key: string): Driver {
 
   waitForElem(steps[0].element as string).then(() => {
     driverObj.drive();
+    after();
   });
   return driverObj;
 }
