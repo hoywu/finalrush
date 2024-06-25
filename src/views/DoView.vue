@@ -139,6 +139,26 @@ function getBlankValue(index: number) {
   return '';
 }
 
+function nextInput(event: KeyboardEvent) {
+  // 焦点切换到下一个输入框，到达最后一个输入框自动下一题
+  const src = event.target as HTMLInputElement;
+  let parent = src.parentElement;
+  while (parent) {
+    if (parent.classList.contains('blank-item')) break;
+    parent = parent.parentElement;
+  }
+
+  if (parent) {
+    let n = parent.nextElementSibling;
+    if (n && n.classList.contains('blank-item')) {
+      n.querySelector('input')?.focus();
+      return;
+    }
+  }
+
+  next();
+}
+
 function selectAnswer() {
   // 选择答案回调
   setTimeout(() => {
@@ -180,6 +200,13 @@ function next() {
   }
   manualCheck.value = true;
   s.state.qIndex++;
+  if (q.isBlank(s.state.qIndex)) {
+    // 填空自动聚焦
+    const input = document.querySelector('.blank-item input');
+    if (input instanceof HTMLInputElement) {
+      input.focus();
+    }
+  }
 }
 
 function submit() {
@@ -350,7 +377,7 @@ function wrongAnswer(index: number) {
         <!-- 填空 -->
         <div class="flex flex-col gap-2" v-if="q.questions[s.state.qIndex].type === 'blank'">
           <div
-            class="flex items-center gap-2"
+            class="blank-item flex items-center gap-2"
             v-for="(_, i) in q.questions[s.state.qIndex].answer"
             :key="i"
           >
@@ -358,6 +385,7 @@ function wrongAnswer(index: number) {
             <ElemStatefulInput
               :value="getBlankValue(i)"
               @input="setArrayAnswer($event, i)"
+              @keydown.enter="nextInput"
               placeholder="请填空"
             />
           </div>

@@ -45,6 +45,10 @@ export const useQuestionStore = defineStore(
       return questions.value[index].type === 'multiple';
     }
 
+    function isBlank(index: number): boolean {
+      return questions.value[index].type === 'blank';
+    }
+
     function supportCheck(index: number): boolean {
       // 题型是否支持系统判题
       if (['single', 'multiple', 'blank'].includes(questions.value[index].type)) {
@@ -103,6 +107,7 @@ export const useQuestionStore = defineStore(
       isEmpty,
       isSingle,
       isMultiple,
+      isBlank,
       supportCheck,
       checkAnswer,
       plusCorrect,
