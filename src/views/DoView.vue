@@ -131,6 +131,12 @@ const errColor = computed(() => {
 });
 
 /*** 事件函数 ***/
+const navScrollLeft = ref(0);
+function onScrollNav(event: WheelEvent) {
+  // 导航条滚轮事件
+  navScrollRef.value?.setScrollLeft(navScrollLeft.value + event.deltaY);
+}
+
 function setArrayAnswer(ans: string, index: number) {
   // 在答题卡中存放数组答案
   if (!a.answerSheet[s.state.qIndex]) {
@@ -298,7 +304,11 @@ function wrongAnswer(index: number) {
   <div v-else v-loading="loading">
     <!-- 导航工具条 -->
     <div class="do-scrollSeg">
-      <el-scrollbar ref="navScrollRef">
+      <el-scrollbar
+        ref="navScrollRef"
+        @scroll="navScrollLeft = $event.scrollLeft"
+        @wheel.prevent="onScrollNav"
+      >
         <el-segmented
           :style="{ width: navWidth }"
           v-model="navIndex"
