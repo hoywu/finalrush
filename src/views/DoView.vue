@@ -131,6 +131,14 @@ function setArrayAnswer(ans: string, index: number) {
   (a.answerSheet[s.state.qIndex][index] as any) = ans;
 }
 
+function getBlankValue(index: number) {
+  // 获取填空当前值
+  if ((a.answerSheet[s.state.qIndex] as any) instanceof Array) {
+    return a.answerSheet[s.state.qIndex][index] || '';
+  }
+  return '';
+}
+
 function selectAnswer() {
   // 选择答案回调
   setTimeout(() => {
@@ -347,7 +355,11 @@ function wrongAnswer(index: number) {
             :key="i"
           >
             <el-tag>{{ i + 1 }}</el-tag>
-            <ElemStatefulInput @input="setArrayAnswer($event, i)" placeholder="请填空" />
+            <ElemStatefulInput
+              :value="getBlankValue(i)"
+              @input="setArrayAnswer($event, i)"
+              placeholder="请填空"
+            />
           </div>
         </div>
 

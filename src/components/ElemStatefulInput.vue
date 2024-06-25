@@ -1,8 +1,15 @@
 <script setup lang="ts">
 const props = defineProps<{
+  value?: string;
   placeholder: string;
 }>();
-const userInput = ref('');
+const userInput = ref(props.value || '');
+watch(
+  () => props.value,
+  (value) => {
+    userInput.value = value || '';
+  }
+);
 </script>
 
 <template>
