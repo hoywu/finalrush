@@ -31,7 +31,27 @@ function setAnswer(ans: any) {
     if (!hasOption(ans)) return;
     selectAnswer();
   }
-  (a.answerSheet[s.state.qIndex] as any) = ans;
+
+  if (q.isSingle(s.state.qIndex)) {
+    (a.answerSheet[s.state.qIndex] as any) = ans;
+    return;
+  }
+
+  if (q.isMultiple(s.state.qIndex)) {
+    if ((a.answerSheet[s.state.qIndex] as any) instanceof Array) {
+      if ((a.answerSheet[s.state.qIndex] as any).includes(ans)) {
+        (a.answerSheet[s.state.qIndex] as any).splice(
+          (a.answerSheet[s.state.qIndex] as any).indexOf(ans),
+          1
+        );
+      } else {
+        (a.answerSheet[s.state.qIndex] as any).push(ans);
+      }
+      return;
+    }
+    (a.answerSheet[s.state.qIndex] as any) = [ans];
+    return;
+  }
 }
 whenever(h, () => setAnswer(0));
 whenever(j, () => setAnswer(1));
