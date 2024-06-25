@@ -476,7 +476,7 @@ export function parseSelectQuestion(data: string, customFilter: string): Array<Q
     } else if (line.search(/(^正确$)|(^错误$)/i) !== -1) {
       // 选项行
       currentQuestion.options = ['正确', '错误'];
-    } else if (line.charAt(0).search(/[A-Z]/i) !== -1) {
+    } else if (line.search(/^[A-F][\.．:：、\s]/i) !== -1) {
       // 选项行
       line
         .split(optionRegex)
