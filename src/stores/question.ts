@@ -135,7 +135,7 @@ export const useQuestionStore = defineStore(
 export function parseAuto(data: string, customFilter: string): Array<Question> {
   // [BETA] 根据标题自动选择解析函数
   const questions = [] as Array<Question>;
-  const lines = data.split('\n').filter((line) => line.trim() !== '');
+  const lines = data.split('\n');
   const regExps = customFilter.split('\n').filter((line) => line.trim() !== '');
 
   const selectReg = /^.?\s*[\.．)）、]?\s*(判断题)|(\S{0,4}选择题)|(\S选题)/u;
@@ -191,10 +191,11 @@ export function parseAuto(data: string, customFilter: string): Array<Question> {
 export function parseSAQ(data: string, customFilter: string): Array<Question> {
   // 从文本中解析简答题
   const questions = [] as Array<Question>;
-  const lines = data.split('\n').filter((line) => line.trim() !== '');
+  const lines = data.trim().split('\n');
   const regExps = customFilter.split('\n').filter((line) => line.trim() !== '');
 
   const done = (q: Question) => {
+    q.title = q.title.trim();
     if (!q.answer) {
       const i = q.title.indexOf('\n');
       if (i !== -1) {
@@ -202,6 +203,7 @@ export function parseSAQ(data: string, customFilter: string): Array<Question> {
         q.title = q.title.slice(0, i);
       }
     }
+    if (typeof q.answer === 'string') q.answer = q.answer.trim();
     questions.push(q);
   };
 
@@ -241,6 +243,7 @@ export function parseSAQ(data: string, customFilter: string): Array<Question> {
     if (line.search(ansReg) !== -1) {
       // 答案行
       currentQ.answer = line.replace(ansReg, '');
+      if (!currentQ.answer) currentQ.answer = ' '; // 答案可能从下一行开始
     } else if (line.search(qNumRegex) !== -1) {
       // 题号
       if (currentQ.title) {
@@ -450,7 +453,12 @@ export function parseSelectQuestion(data: string, customFilter: string): Array<Q
 
     if (line.search(/(^(答案)?解析[:：])/u) !== -1) {
       // 答案解析行，添加到最新一题的解析
-      questions[questions.length - 1].explain = line.replace(/(^(答案)?解析[:：])/u, '');
+      const explain = line.replace(/(^(答案)?解析[:：])/u, '');
+      if (currentQuestion.title) {
+        currentQuestion.explain = explain;
+      } else {
+        questions[questions.length - 1].explain = explain;
+      }
       continue;
     }
 
