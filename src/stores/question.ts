@@ -47,7 +47,7 @@ export const useQuestionStore = defineStore(
 
     function supportCheck(index: number): boolean {
       // 题型是否支持系统判题
-      if (questions.value[index].type in ['single', 'multiple', 'blank']) {
+      if (['single', 'multiple', 'blank'].includes(questions.value[index].type)) {
         return true;
       }
       return false;
