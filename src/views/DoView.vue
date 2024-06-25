@@ -29,6 +29,7 @@ function hasOption(i: number): boolean {
 function setAnswer(ans: any) {
   if (typeof ans === 'number') {
     if (!hasOption(ans)) return;
+    selectAnswer();
   }
   (a.answerSheet[s.state.qIndex] as any) = ans;
 }
