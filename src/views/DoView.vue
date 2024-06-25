@@ -4,6 +4,7 @@ import { useStateStore } from '@/stores/state';
 import { useQuestionStore, type Question } from '@/stores/question';
 import { useAnswerStore } from '@/stores/answerSheet';
 import { useConfigStore } from '@/stores/config';
+import { useHotkeyStore } from '@/stores/hotkey';
 import { useWindowSize, useMagicKeys, whenever } from '@vueuse/core';
 import { tipOnce } from '@/utils/tips';
 
@@ -12,6 +13,7 @@ const s = useStateStore();
 const q = useQuestionStore();
 const a = useAnswerStore();
 const c = useConfigStore();
+const h = useHotkeyStore();
 
 /*** 初始化 ***/
 onMounted(() => {
@@ -21,7 +23,7 @@ onMounted(() => {
 });
 
 /*** 快捷键 ***/
-const { h, j, k, l, bracketleft, bracketright } = useMagicKeys();
+const keys = useMagicKeys();
 function hasOption(i: number): boolean {
   if (q.questions[s.state.qIndex].options && q.questions[s.state.qIndex].options instanceof Array) {
     return i < q.questions[s.state.qIndex].options.length;
@@ -55,16 +57,16 @@ function setAnswer(ans: any) {
     return;
   }
 }
-whenever(h, () => setAnswer(0));
-whenever(j, () => setAnswer(1));
-whenever(k, () => setAnswer(2));
-whenever(l, () => setAnswer(3));
-whenever(bracketleft, () => {
+whenever(keys[h.a], () => setAnswer(0));
+whenever(keys[h.b], () => setAnswer(1));
+whenever(keys[h.c], () => setAnswer(2));
+whenever(keys[h.d], () => setAnswer(3));
+whenever(keys[h.prev], () => {
   if (q.isBlank(s.state.qIndex)) return;
   if (q.isSAQ(s.state.qIndex) && !c.skipSAQ) return;
   prev();
 });
-whenever(bracketright, () => {
+whenever(keys[h.next], () => {
   if (q.isBlank(s.state.qIndex)) return;
   if (q.isSAQ(s.state.qIndex) && !c.skipSAQ) return;
   next();
