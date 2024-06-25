@@ -39,6 +39,7 @@ declare module 'vue' {
     'IconMaterialSymbols:deleteForeverRounded': typeof import('~icons/material-symbols/delete-forever-rounded')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SetHotKeyDialog: typeof import('./../src/components/SetHotKeyDialog.vue')['default']
     TheTour: typeof import('./../src/components/TheTour.vue')['default']
   }
   export interface ComponentCustomProperties {

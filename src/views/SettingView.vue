@@ -2,10 +2,17 @@
 import { useConfigStore } from '@/stores/config';
 
 const config = useConfigStore();
+
+const hotkey = ref(false);
 </script>
 
 <template>
-  <el-button type="warning" @click="config.reset">重置</el-button>
+  <div class="flex flex-wrap gap-2">
+    <div><el-button type="warning" @click="config.reset">重置</el-button></div>
+    <div><el-button type="primary" @click="hotkey = true">修改键盘热键</el-button></div>
+    <SetHotKeyDialog v-model="hotkey" />
+  </div>
+
   <div class="flex flex-col gap-1 mt-2">
     <el-checkbox v-model="config.autoNext">单选自动下一题</el-checkbox>
     <el-checkbox v-model="config.immediateCheck">做错立即显示答案</el-checkbox>
