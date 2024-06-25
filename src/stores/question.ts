@@ -49,6 +49,14 @@ export const useQuestionStore = defineStore(
       return questions.value[index].type === 'blank';
     }
 
+    function isSAQ(index: number): boolean {
+      return questions.value[index].type === 'short_answer';
+    }
+
+    function needInput(index: number): boolean {
+      return isBlank(index) || isSAQ(index);
+    }
+
     function supportCheck(index: number): boolean {
       // 题型是否支持系统判题
       if (['single', 'multiple', 'blank'].includes(questions.value[index].type)) {
@@ -108,6 +116,8 @@ export const useQuestionStore = defineStore(
       isSingle,
       isMultiple,
       isBlank,
+      isSAQ,
+      needInput,
       supportCheck,
       checkAnswer,
       plusCorrect,

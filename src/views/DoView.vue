@@ -57,8 +57,16 @@ whenever(h, () => setAnswer(0));
 whenever(j, () => setAnswer(1));
 whenever(k, () => setAnswer(2));
 whenever(l, () => setAnswer(3));
-whenever(bracketleft, () => prev());
-whenever(bracketright, () => next());
+whenever(bracketleft, () => {
+  if (q.isBlank(s.state.qIndex)) return;
+  if (q.isSAQ(s.state.qIndex) && !c.skipSAQ) return;
+  prev();
+});
+whenever(bracketright, () => {
+  if (q.isBlank(s.state.qIndex)) return;
+  if (q.isSAQ(s.state.qIndex) && !c.skipSAQ) return;
+  next();
+});
 
 /*** 引导 ***/
 const openTour = ref(false);
