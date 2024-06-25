@@ -5,6 +5,7 @@ import { useQuestionStore, type Question } from '@/stores/question';
 import { useAnswerStore } from '@/stores/answerSheet';
 import { useConfigStore } from '@/stores/config';
 import { useWindowSize, useMagicKeys, whenever } from '@vueuse/core';
+import { tipOnce } from '@/utils/tips';
 
 /*** 全局存储 ***/
 const s = useStateStore();
@@ -16,6 +17,7 @@ const c = useConfigStore();
 onMounted(() => {
   reset();
   navScrollToMid();
+  tipOnce('do_scrollSeg_1');
 });
 
 /*** 快捷键 ***/

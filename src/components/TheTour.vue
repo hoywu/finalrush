@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { moveNextUntil, movePrevUntil } from '@/utils/tips';
 import { driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
 
@@ -19,7 +20,7 @@ const driverObj = driver({
         prevBtnText: '上一步',
         nextBtnText: '下一步',
         onNextClick: () => {
-          moveNextUntil('#data_load_btn');
+          moveNextUntil('#data_load_btn', driverObj);
         },
         onCloseClick: () => {
           driverObj.destroy();
@@ -86,10 +87,10 @@ const driverObj = driver({
         nextBtnText: '下一步',
         onPrevClick: () => {
           router.push({ name: 'data' });
-          movePrevUntil('#data_action_btn');
+          movePrevUntil('#data_action_btn', driverObj);
         },
         onNextClick: () => {
-          moveNextUntil('#import_input_group');
+          moveNextUntil('#import_input_group', driverObj);
         },
         onCloseClick: () => {
           driverObj.destroy();
@@ -124,40 +125,6 @@ watch(openTour, (val) => {
     driverObj.drive();
   }
 });
-
-/** Functions **/
-const movePrevUntil = (waitFor: string) => {
-  waitForElem(waitFor).then(() => {
-    driverObj.movePrevious();
-  });
-};
-const moveNextUntil = (waitFor: string) => {
-  waitForElem(waitFor).then(() => {
-    driverObj.moveNext();
-  });
-};
-
-function waitForElem(selector: string) {
-  return new Promise((resolve) => {
-    if (document.querySelector(selector)) {
-      return resolve(document.querySelector(selector));
-    }
-
-    const observer = new MutationObserver(() => {
-      if (document.querySelector(selector)) {
-        observer.disconnect();
-        resolve(document.querySelector(selector));
-      }
-    });
-
-    // If you get "parameter 1 is not of type 'Node'" error,
-    // see https://stackoverflow.com/a/77855838/492336
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  });
-}
 </script>
 
 <template>
