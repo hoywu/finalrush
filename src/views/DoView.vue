@@ -4,7 +4,7 @@ import { useStateStore } from '@/stores/state';
 import { useQuestionStore, type Question } from '@/stores/question';
 import { useAnswerStore } from '@/stores/answerSheet';
 import { useConfigStore } from '@/stores/config';
-import { useWindowSize } from '@vueuse/core';
+import { useWindowSize, useMagicKeys, whenever } from '@vueuse/core';
 
 /*** 全局存储 ***/
 const s = useStateStore();
@@ -17,6 +17,27 @@ onMounted(() => {
   reset();
   navScrollToMid();
 });
+
+/*** 快捷键 ***/
+const { h, j, k, l, bracketleft, bracketright } = useMagicKeys();
+function hasOption(i: number): boolean {
+  if (q.questions[s.state.qIndex].options && q.questions[s.state.qIndex].options instanceof Array) {
+    return i < q.questions[s.state.qIndex].options.length;
+  }
+  return false;
+}
+function setAnswer(ans: any) {
+  if (typeof ans === 'number') {
+    if (!hasOption(ans)) return;
+  }
+  (a.answerSheet[s.state.qIndex] as any) = ans;
+}
+whenever(h, () => setAnswer(0));
+whenever(j, () => setAnswer(1));
+whenever(k, () => setAnswer(2));
+whenever(l, () => setAnswer(3));
+whenever(bracketleft, () => prev());
+whenever(bracketright, () => next());
 
 /*** 引导 ***/
 const openTour = ref(false);
