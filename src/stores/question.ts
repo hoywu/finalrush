@@ -586,6 +586,10 @@ function checkBlank(answer: Array<string>, userAnswer: Array<string>): boolean {
   }
 
   for (let i = 0; i < answer.length; i++) {
+    if (!answer[i] || !userAnswer[i]) {
+      // answer中可能有未填的空
+      return false;
+    }
     if (answer[i].trim().toLowerCase() !== userAnswer[i].trim().toLowerCase()) {
       return false;
     }
