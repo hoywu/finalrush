@@ -70,8 +70,13 @@ whenever(logicAnd(keys[h.a], notUsingInput), () => setAnswer(0));
 whenever(logicAnd(keys[h.b], notUsingInput), () => setAnswer(1));
 whenever(logicAnd(keys[h.c], notUsingInput), () => setAnswer(2));
 whenever(logicAnd(keys[h.d], notUsingInput), () => setAnswer(3));
+whenever(logicAnd(keys[h.e], notUsingInput), () => setAnswer(4));
+whenever(logicAnd(keys[h.f], notUsingInput), () => setAnswer(5));
+whenever(logicAnd(keys[h.g], notUsingInput), () => setAnswer(6));
+whenever(logicAnd(keys[h.h], notUsingInput), () => setAnswer(7));
 whenever(logicAnd(keys[h.prev], notUsingInput), () => prev());
 whenever(logicAnd(keys[h.next], notUsingInput), () => next());
+whenever(logicAnd(keys[h.showAns], notUsingInput), () => showAnswer());
 
 /*** 引导 ***/
 const openTour = ref(false);
