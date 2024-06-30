@@ -15,6 +15,26 @@ tips.set('do_scrollSeg_1', [
     },
   },
 ]);
+tips.set('hotkeys_1', [
+  {
+    element: '#nav_setting',
+    popover: {
+      title: '🎉增强的键盘快捷键',
+      description: `[键盘快捷键逻辑优化]
+1. 下一题快捷键不再自动提交，新增提交快捷键
+2. 新增4个选项快捷键，支持选项更多的题目
+3. 新增查看答案、聚焦输入框快捷键`,
+      side: 'bottom',
+      align: 'start',
+      showButtons: ['close'],
+      doneBtnText: '我知道了',
+      onPopoverRender: (popover) => {
+        popover.wrapper.style.maxWidth = 'unset';
+        popover.description.style.whiteSpace = 'pre-line';
+      },
+    },
+  },
+]);
 
 export function tip(key: string) {
   if (!tips.has(key)) return;
@@ -52,10 +72,15 @@ function startDriver(key: string, after: Function = () => {}): Driver {
   });
   driverObj.setSteps(steps);
 
-  waitForElem(steps[0].element as string).then(() => {
+  if (steps[0].element) {
+    waitForElem(steps[0].element as string).then(() => {
+      driverObj.drive();
+      after();
+    });
+  } else {
     driverObj.drive();
     after();
-  });
+  }
   return driverObj;
 }
 

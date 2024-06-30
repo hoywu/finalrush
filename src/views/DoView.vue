@@ -20,7 +20,7 @@ const h = useHotkeyStore();
 onMounted(() => {
   reset();
   navScrollToMid();
-  tipOnce('do_scrollSeg_1');
+  tipOnce('hotkeys_1');
 });
 
 /*** 快捷键 ***/
