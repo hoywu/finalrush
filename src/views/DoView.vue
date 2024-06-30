@@ -75,8 +75,26 @@ whenever(logicAnd(keys[h.f], notUsingInput), () => setAnswer(5));
 whenever(logicAnd(keys[h.g], notUsingInput), () => setAnswer(6));
 whenever(logicAnd(keys[h.h], notUsingInput), () => setAnswer(7));
 whenever(logicAnd(keys[h.prev], notUsingInput), () => prev());
-whenever(logicAnd(keys[h.next], notUsingInput), () => next());
+whenever(logicAnd(keys[h.next], notUsingInput), () =>
+  s.state.qIndex === q.qCount - 1 ? '' : s.state.qIndex++
+);
+whenever(logicAnd(keys[h.submit], notUsingInput), () => next());
 whenever(logicAnd(keys[h.showAns], notUsingInput), () => showAnswer());
+whenever(logicAnd(keys[h.focus], notUsingInput), () => {
+  let input = document.querySelector('.blank-item input');
+  if (!input) input = document.querySelector('textarea');
+  if (input instanceof HTMLElement) {
+    const lis = (e: InputEvent) => {
+      e.preventDefault(); // 避免快捷键被输入
+      input.removeEventListener('beforeinput', lis); // 最多拦截一次
+    };
+    input.addEventListener('beforeinput', lis);
+    input.focus();
+    setTimeout(() => {
+      input.removeEventListener('beforeinput', lis);
+    }, 100);
+  }
+});
 
 /*** 引导 ***/
 const openTour = ref(false);
@@ -424,6 +442,7 @@ function wrongAnswer(index: number) {
               :value="getBlankValue(i)"
               @input="setArrayAnswer($event, i)"
               @keydown.enter="nextInput"
+              @keydown.esc="(e) => (e.target as HTMLElement).blur()"
               placeholder="请填空"
             />
           </div>
@@ -445,6 +464,7 @@ function wrongAnswer(index: number) {
             :rows="5"
             placeholder="请简答"
             v-model="a.answerSheet[s.state.qIndex]"
+            @keydown.esc="(e) => (e.target as HTMLElement).blur()"
           />
 
           <!-- prettier-ignore -->

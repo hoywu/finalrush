@@ -14,9 +14,11 @@ export const useHotkeyStore = defineStore(
     const h = ref('');
     const prev = ref('[');
     const next = ref(']');
+    const submit = ref('enter');
     const showAns = ref('a');
+    const focus = ref('f');
 
-    return { a, b, c, d, e, f, g, h, prev, next, showAns };
+    return { a, b, c, d, e, f, g, h, prev, next, submit, showAns, focus };
   },
   {
     persist: true,

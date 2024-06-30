@@ -18,7 +18,21 @@ watch(current, (val) => {
   newKeys.value = val;
 });
 
-const options = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', '上一题', '下一题', '查看答案'];
+const options = [
+  'A',
+  'B',
+  'C',
+  'D',
+  'E',
+  'F',
+  'G',
+  'H',
+  '上一题',
+  '下一题',
+  '提交',
+  '查看答案',
+  '聚焦输入',
+];
 const option = ref('A');
 
 const hotkey = useHotkeyStore();
@@ -33,7 +47,9 @@ const getHotkey = computed(() => {
   if (option.value === 'H') return hotkey.h;
   if (option.value === '上一题') return hotkey.prev;
   if (option.value === '下一题') return hotkey.next;
+  if (option.value === '提交') return hotkey.submit;
   if (option.value === '查看答案') return hotkey.showAns;
+  if (option.value === '聚焦输入') return hotkey.focus;
 });
 
 function saveHotkey() {
@@ -47,7 +63,9 @@ function saveHotkey() {
   else if (option.value === 'H') hotkey.h = newKeys.value.join('+');
   else if (option.value === '上一题') hotkey.prev = newKeys.value.join('+');
   else if (option.value === '下一题') hotkey.next = newKeys.value.join('+');
+  else if (option.value === '提交') hotkey.submit = newKeys.value.join('+');
   else if (option.value === '查看答案') hotkey.showAns = newKeys.value.join('+');
+  else if (option.value === '聚焦输入') hotkey.focus = newKeys.value.join('+');
   newKeys.value = [];
 }
 
