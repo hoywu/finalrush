@@ -7,6 +7,7 @@ export const useConfigStore = defineStore(
     const autoNext = ref(true); // 单选自动下一题
     const immediateCheck = ref(true); // 做错立即显示答案
     const skipSAQ = ref(false); // 不做简答
+    const autoFocusBlank = ref(true); // 下一题自动聚焦填空
     const titleFontSize = ref(16); // 题目字体大小
     const optionFontSize = ref(14); // 选项字体大小
 
@@ -18,6 +19,7 @@ export const useConfigStore = defineStore(
       autoNext.value = true;
       immediateCheck.value = true;
       skipSAQ.value = false;
+      autoFocusBlank.value = true;
       titleFontSize.value = 16;
       optionFontSize.value = 14;
     }
@@ -26,6 +28,7 @@ export const useConfigStore = defineStore(
       autoNext,
       immediateCheck,
       skipSAQ,
+      autoFocusBlank,
       titleFontSize,
       optionFontSize,
       codeBlockFontSize,

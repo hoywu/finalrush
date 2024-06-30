@@ -221,7 +221,7 @@ function next() {
   s.state.qIndex++;
   nextTick(() => {
     // 填空自动聚焦
-    if (q.isBlank(s.state.qIndex)) {
+    if (c.autoFocusBlank && q.isBlank(s.state.qIndex)) {
       const input = document.querySelector('.blank-item input');
       if (input instanceof HTMLInputElement) {
         const lis = (e: InputEvent) => {

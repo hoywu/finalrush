@@ -17,6 +17,7 @@ const hotkey = ref(false);
     <el-checkbox v-model="config.autoNext">单选自动下一题</el-checkbox>
     <el-checkbox v-model="config.immediateCheck">做错立即显示答案</el-checkbox>
     <el-checkbox v-model="config.skipSAQ">不做简答 (直接显示答案)</el-checkbox>
+    <el-checkbox v-model="config.autoFocusBlank">下一题自动聚焦填空</el-checkbox>
 
     <div class="grid grid-cols-1">
       <el-text>题目字体大小：</el-text>
