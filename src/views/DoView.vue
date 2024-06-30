@@ -5,7 +5,8 @@ import { useQuestionStore, type Question } from '@/stores/question';
 import { useAnswerStore } from '@/stores/answerSheet';
 import { useConfigStore } from '@/stores/config';
 import { useHotkeyStore } from '@/stores/hotkey';
-import { useWindowSize, useMagicKeys, whenever } from '@vueuse/core';
+import { useWindowSize, useMagicKeys, useActiveElement, whenever } from '@vueuse/core';
+import { logicAnd } from '@vueuse/math';
 import { tipOnce } from '@/utils/tips';
 
 /*** 全局存储 ***/
@@ -24,6 +25,11 @@ onMounted(() => {
 
 /*** 快捷键 ***/
 const keys = useMagicKeys();
+const activeElement = useActiveElement();
+const notUsingInput = computed(
+  () => activeElement.value?.tagName !== 'INPUT' && activeElement.value?.tagName !== 'TEXTAREA'
+);
+// 辅助函数
 function hasOption(i: number): boolean {
   if (q.questions[s.state.qIndex].options && q.questions[s.state.qIndex].options instanceof Array) {
     return i < q.questions[s.state.qIndex].options.length;
@@ -32,16 +38,18 @@ function hasOption(i: number): boolean {
 }
 function setAnswer(ans: any) {
   if (typeof ans === 'number') {
-    if (!hasOption(ans)) return;
-    selectAnswer();
+    if (!hasOption(ans)) return; // 选项不存在，不做任何操作
+    selectAnswer(); // 手动激活选择答案回调，允许自动下一题
   }
 
   if (q.isSingle(s.state.qIndex)) {
+    // 设置单选题答案
     (a.answerSheet[s.state.qIndex] as any) = ans;
     return;
   }
 
   if (q.isMultiple(s.state.qIndex)) {
+    // 设置多选题答案
     if ((a.answerSheet[s.state.qIndex] as any) instanceof Array) {
       if ((a.answerSheet[s.state.qIndex] as any).includes(ans)) {
         (a.answerSheet[s.state.qIndex] as any).splice(
@@ -57,20 +65,13 @@ function setAnswer(ans: any) {
     return;
   }
 }
-whenever(keys[h.a], () => setAnswer(0));
-whenever(keys[h.b], () => setAnswer(1));
-whenever(keys[h.c], () => setAnswer(2));
-whenever(keys[h.d], () => setAnswer(3));
-whenever(keys[h.prev], () => {
-  if (q.isBlank(s.state.qIndex)) return;
-  if (q.isSAQ(s.state.qIndex) && !c.skipSAQ) return;
-  prev();
-});
-whenever(keys[h.next], () => {
-  if (q.isBlank(s.state.qIndex)) return;
-  if (q.isSAQ(s.state.qIndex) && !c.skipSAQ) return;
-  next();
-});
+// 绑定快捷键
+whenever(logicAnd(keys[h.a], notUsingInput), () => setAnswer(0));
+whenever(logicAnd(keys[h.b], notUsingInput), () => setAnswer(1));
+whenever(logicAnd(keys[h.c], notUsingInput), () => setAnswer(2));
+whenever(logicAnd(keys[h.d], notUsingInput), () => setAnswer(3));
+whenever(logicAnd(keys[h.prev], notUsingInput), () => prev());
+whenever(logicAnd(keys[h.next], notUsingInput), () => next());
 
 /*** 引导 ***/
 const openTour = ref(false);
@@ -218,13 +219,23 @@ function next() {
   }
   manualCheck.value = true;
   s.state.qIndex++;
-  if (q.isBlank(s.state.qIndex)) {
+  nextTick(() => {
     // 填空自动聚焦
-    const input = document.querySelector('.blank-item input');
-    if (input instanceof HTMLInputElement) {
-      input.focus();
+    if (q.isBlank(s.state.qIndex)) {
+      const input = document.querySelector('.blank-item input');
+      if (input instanceof HTMLInputElement) {
+        const lis = (e: InputEvent) => {
+          e.preventDefault(); // 避免快捷键被输入
+          input.removeEventListener('beforeinput', lis); // 最多拦截一次
+        };
+        input.addEventListener('beforeinput', lis);
+        input.focus();
+        setTimeout(() => {
+          input.removeEventListener('beforeinput', lis);
+        }, 100);
+      }
     }
-  }
+  });
 }
 
 function submit() {
