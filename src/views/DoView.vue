@@ -26,8 +26,12 @@ onMounted(() => {
 /*** 快捷键 ***/
 const keys = useMagicKeys();
 const activeElement = useActiveElement();
+const inputEnter = ref(false);
 const notUsingInput = computed(
-  () => activeElement.value?.tagName !== 'INPUT' && activeElement.value?.tagName !== 'TEXTAREA'
+  () =>
+    activeElement.value?.tagName !== 'INPUT' &&
+    activeElement.value?.tagName !== 'TEXTAREA' &&
+    !inputEnter.value
 );
 // 辅助函数
 function hasOption(i: number): boolean {
@@ -183,6 +187,12 @@ function getBlankValue(index: number) {
 
 function nextInput(event: KeyboardEvent) {
   // 焦点切换到下一个输入框，到达最后一个输入框自动下一题
+  inputEnter.value = true;
+  setTimeout(() => {
+    // 切换到下一题时，activeElement可能会变成body
+    // 添加一个flag防止触发快捷键
+    inputEnter.value = false;
+  }, 100);
   const src = event.target as HTMLInputElement;
   let parent = src.parentElement;
   while (parent) {
