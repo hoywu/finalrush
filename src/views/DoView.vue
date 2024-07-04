@@ -31,7 +31,8 @@ const notUsingInput = computed(
   () =>
     activeElement.value?.tagName !== 'INPUT' &&
     activeElement.value?.tagName !== 'TEXTAREA' &&
-    !inputEnter.value
+    !inputEnter.value &&
+    !beforeNext.value
 );
 // 辅助函数
 function hasOption(i: number): boolean {
@@ -211,13 +212,17 @@ function nextInput(event: KeyboardEvent) {
   next();
 }
 
+const beforeNext = ref(false); // 防止用户连续点击下一题
 function selectAnswer() {
   // 选择答案回调
-  setTimeout(() => {
-    if (c.autoNext && q.isSingle(s.state.qIndex)) {
+  if (c.autoNext && q.isSingle(s.state.qIndex)) {
+    beforeNext.value = true;
+    // 延迟触发，让用户看清楚选项
+    setTimeout(() => {
       next();
-    }
-  }, 300);
+      beforeNext.value = false;
+    }, 300);
+  }
 }
 
 function showAnswer() {
@@ -492,12 +497,14 @@ function wrongAnswer(index: number) {
     <!-- 控制按钮 -->
     <div id="do-control">
       <div>
-        <el-button type="primary" @click="prev" :disabled="s.state.qIndex === 0">上一题</el-button>
-        <el-button type="primary" @click="next">下一题</el-button>
+        <el-button type="primary" @click="prev" :disabled="beforeNext || s.state.qIndex === 0">
+          上一题
+        </el-button>
+        <el-button type="primary" @click="next" :disabled="beforeNext">下一题</el-button>
       </div>
       <div>
-        <el-button type="warning" @click="restart">重新开始</el-button>
-        <el-button type="primary" @click="showAnswer">查看答案</el-button>
+        <el-button type="warning" @click="restart" :disabled="beforeNext">重新开始</el-button>
+        <el-button type="primary" @click="showAnswer" :disabled="beforeNext">查看答案</el-button>
       </div>
     </div>
 
