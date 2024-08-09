@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import DoView from '@/views/DoView.vue';
-const DataView = () => import('@/views/DataView.vue');
-const ImportView = () => import('@/views/ImportView.vue');
-const SettingView = () => import('@/views/SettingView.vue');
+const DataView = () => import(/* webpackPrefetch: true */ '@/views/DataView.vue');
+const ImportView = () => import(/* webpackPrefetch: true */ '@/views/ImportView.vue');
+const SettingView = () => import(/* webpackPrefetch: true */ '@/views/SettingView.vue');
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
